@@ -478,64 +478,134 @@
 
         // Touch support for mobile
         let touchStartItem = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isDragging = false;
+        let dragElement = null;
 
         document.querySelectorAll('.trash-item').forEach(item => {
             item.addEventListener('touchstart', function(e) {
+                e.preventDefault();
                 if (this.classList.contains('placed')) return;
+                
                 touchStartItem = this;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isDragging = false;
+                
+                // Add visual feedback
                 this.style.opacity = '0.7';
+                this.style.transform = 'scale(1.1)';
+                this.style.zIndex = '1000';
+            });
+
+            item.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                if (!touchStartItem || touchStartItem.classList.contains('placed')) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Start dragging if moved more than 10px
+                if (distance > 10 && !isDragging) {
+                    isDragging = true;
+                    this.classList.add('dragging');
+                    
+                    // Create a visual clone for dragging
+                    dragElement = this.cloneNode(true);
+                    dragElement.style.position = 'fixed';
+                    dragElement.style.left = touch.clientX - 30 + 'px';
+                    dragElement.style.top = touch.clientY - 30 + 'px';
+                    dragElement.style.pointerEvents = 'none';
+                    dragElement.style.zIndex = '9999';
+                    document.body.appendChild(dragElement);
+                }
+                
+                // Update drag element position
+                if (isDragging && dragElement) {
+                    dragElement.style.left = touch.clientX - 30 + 'px';
+                    dragElement.style.top = touch.clientY - 30 + 'px';
+                }
             });
 
             item.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                
+                if (isDragging && dragElement) {
+                    // Find the bin under the touch point
+                    const touch = e.changedTouches[0];
+                    const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const binElement = elementUnderTouch ? elementUnderTouch.closest('.bin') : null;
+                    
+                    if (binElement && touchStartItem && !touchStartItem.classList.contains('placed')) {
+                        const itemType = touchStartItem.dataset.item;
+                        const binType = binElement.dataset.bin;
+
+                        if (correctMappings[itemType] === binType) {
+                            // Correct placement
+                            binElement.classList.add('correct');
+                            binElement.classList.remove('wrong');
+                            
+                            const binContent = binElement.querySelector('.bin-content');
+                            binContent.innerHTML = touchStartItem.innerHTML;
+                            binContent.classList.add('bounce');
+                            
+                            touchStartItem.classList.add('placed');
+                            touchStartItem.style.cursor = 'default';
+                            touchStartItem.style.pointerEvents = 'none';
+                            
+                            placedItems++;
+                            
+                            // Play plink effect
+                            binElement.classList.add('plink');
+                            setTimeout(() => {
+                                binElement.classList.remove('plink');
+                            }, 300);
+                            
+                            if (placedItems === 10) {
+                                setTimeout(() => {
+                                    showSuccess();
+                                }, 500);
+                            }
+                        } else {
+                            // Wrong placement
+                            binElement.classList.add('wrong');
+                            setTimeout(() => {
+                                binElement.classList.remove('wrong');
+                            }, 500);
+                        }
+                    }
+                    
+                    // Clean up drag element
+                    if (dragElement) {
+                        document.body.removeChild(dragElement);
+                        dragElement = null;
+                    }
+                }
+                
+                // Reset item state
                 this.style.opacity = '1';
+                this.style.transform = '';
+                this.style.zIndex = '';
+                this.classList.remove('dragging');
+                
                 touchStartItem = null;
+                isDragging = false;
             });
         });
 
+        // Add visual feedback for bins on touch
         document.querySelectorAll('.bin').forEach(bin => {
-            bin.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (touchStartItem && !touchStartItem.classList.contains('placed')) {
-                    const itemType = touchStartItem.dataset.item;
-                    const binType = this.dataset.bin;
-
-                    if (correctMappings[itemType] === binType) {
-                        this.classList.add('correct');
-                        this.classList.remove('wrong');
-                        
-                        const binContent = this.querySelector('.bin-content');
-                        binContent.innerHTML = touchStartItem.innerHTML;
-                        binContent.classList.add('bounce');
-                        
-                        touchStartItem.classList.add('placed');
-                        touchStartItem.style.cursor = 'default';
-                        touchStartItem.style.pointerEvents = 'none';
-                        
-                        placedItems++;
-                        
-                        // Play plink effect
-                        this.classList.add('plink');
-                        setTimeout(() => {
-                            this.classList.remove('plink');
-                        }, 300);
-                        
-                        if (placedItems === 10) {
-                            setTimeout(() => {
-                                showSuccess();
-                            }, 500);
-                        }
-                    } else {
-                        this.classList.add('wrong');
-                        setTimeout(() => {
-                            this.classList.remove('wrong');
-                        }, 500);
-                    }
-                    
-                    // Reset touch item
-                    touchStartItem = null;
+            bin.addEventListener('touchstart', function(e) {
+                if (isDragging && touchStartItem) {
+                    this.classList.add('drag-over');
                 }
+            });
+            
+            bin.addEventListener('touchend', function(e) {
+                this.classList.remove('drag-over');
             });
         });
     </script>
