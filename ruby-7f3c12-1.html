@@ -374,49 +374,124 @@
 
         // Touch support for mobile
         let touchStartElement = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isDragging = false;
+        let dragElement = null;
 
         document.querySelectorAll('.draggable-element').forEach(element => {
             element.addEventListener('touchstart', function(e) {
+                e.preventDefault();
                 touchStartElement = this;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isDragging = false;
+                
+                // Add visual feedback
                 this.style.opacity = '0.7';
+                this.style.transform = 'scale(1.1)';
+                this.style.zIndex = '1000';
+            });
+
+            element.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                if (!touchStartElement) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Start dragging if moved more than 10px
+                if (distance > 10 && !isDragging) {
+                    isDragging = true;
+                    this.classList.add('dragging');
+                    
+                    // Create a visual clone for dragging
+                    dragElement = this.cloneNode(true);
+                    dragElement.style.position = 'fixed';
+                    dragElement.style.left = touch.clientX - 30 + 'px';
+                    dragElement.style.top = touch.clientY - 30 + 'px';
+                    dragElement.style.pointerEvents = 'none';
+                    dragElement.style.zIndex = '9999';
+                    document.body.appendChild(dragElement);
+                }
+                
+                // Update drag element position
+                if (isDragging && dragElement) {
+                    dragElement.style.left = touch.clientX - 30 + 'px';
+                    dragElement.style.top = touch.clientY - 30 + 'px';
+                }
             });
 
             element.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                
+                if (isDragging && dragElement) {
+                    // Find the drop zone under the touch point
+                    const touch = e.changedTouches[0];
+                    const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const dropZone = elementUnderTouch ? elementUnderTouch.closest('.drop-zone') : null;
+                    
+                    if (dropZone) {
+                        const elementType = touchStartElement.dataset.element;
+                        const zoneType = dropZone.dataset.zone;
+
+                        if (correctMappings[elementType] === zoneType) {
+                            // Correct placement
+                            dropZone.classList.add('correct');
+                            dropZone.classList.remove('wrong');
+                            
+                            const zoneContent = dropZone.querySelector('.zone-content');
+                            zoneContent.innerHTML = touchStartElement.innerHTML;
+                            zoneContent.classList.add('bounce');
+                            
+                            touchStartElement.style.display = 'none';
+                            
+                            completedElements++;
+                            
+                            if (completedElements === 4) {
+                                setTimeout(() => {
+                                    showSuccess();
+                                }, 500);
+                            }
+                        } else {
+                            // Wrong placement
+                            dropZone.classList.add('wrong');
+                            setTimeout(() => {
+                                dropZone.classList.remove('wrong');
+                            }, 500);
+                        }
+                    }
+                    
+                    // Clean up drag element
+                    if (dragElement) {
+                        document.body.removeChild(dragElement);
+                        dragElement = null;
+                    }
+                }
+                
+                // Reset element state
                 this.style.opacity = '1';
+                this.style.transform = '';
+                this.style.zIndex = '';
+                this.classList.remove('dragging');
+                
                 touchStartElement = null;
+                isDragging = false;
             });
         });
 
+        // Add visual feedback for drop zones on touch
         document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.addEventListener('touchend', function(e) {
-                if (touchStartElement) {
-                    const elementType = touchStartElement.dataset.element;
-                    const zoneType = this.dataset.zone;
-
-                    if (correctMappings[elementType] === zoneType) {
-                        this.classList.add('correct');
-                        this.classList.remove('wrong');
-                        
-                        const zoneContent = this.querySelector('.zone-content');
-                        zoneContent.innerHTML = touchStartElement.innerHTML;
-                        zoneContent.classList.add('bounce');
-                        
-                        touchStartElement.style.display = 'none';
-                        
-                        completedElements++;
-                        
-                        if (completedElements === 4) {
-                            setTimeout(() => {
-                                showSuccess();
-                            }, 500);
-                        }
-                    } else {
-                        this.classList.add('wrong');
-                        setTimeout(() => {
-                            this.classList.remove('wrong');
-                        }, 500);
-                    }
+            zone.addEventListener('touchstart', function(e) {
+                if (isDragging && touchStartElement) {
+                    this.classList.add('drag-over');
                 }
+            });
+            
+            zone.addEventListener('touchend', function(e) {
+                this.classList.remove('drag-over');
             });
         });
     </script>
