@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scavenger Hunt - Welcome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .welcome-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+
+        .instructions {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #2980b9;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #34495e;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-container {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="header">
+            <h1>🎯 Scavenger Hunt</h1>
+            <p>Welcome to the ultimate riddle challenge! Solve all 7 riddles to complete your quest.</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <p>Your adventure awaits! Each riddle will test your wit and creativity. Good luck!</p>
+        </div>
+
+    </div>
+</body>
+</html>
