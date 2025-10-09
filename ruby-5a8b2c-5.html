@@ -775,6 +775,9 @@
             const codeInput = document.getElementById('codeInput');
             codeInput.value = '';
             
+            // Scroll to top of page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
             // Show reset message
             showResetMessage();
         }
