@@ -741,125 +741,58 @@
         }
 
         function resetGame() {
-            // Reset game state
-            gameState.currentStep = 0;
-            gameState.leavesShaken = 0;
-            gameState.gamePhase = 'shaking';
-            
-            // Reset riddle progress
-            gameState.riddleProgress = {
-                easy: false,
-                medium: false,
-                hard: false
-            };
-            
-            // Reset progress bar
-            const progressFill = document.getElementById('progressFill');
-            progressFill.style.width = '0%';
-            
-            // Reset sequence display
-            createSequenceDisplay();
-            
-            // Hide all clues
-            document.querySelectorAll('.clue-reveal').forEach(clue => {
-                clue.classList.remove('show');
-            });
-            
-            // Hide success message if visible
-            const successMessage = document.getElementById('successMessage');
-            successMessage.classList.remove('show');
-            
-            // Hide final riddle if visible
-            const finalRiddle = document.getElementById('finalRiddle');
-            finalRiddle.classList.remove('show');
-            finalRiddle.style.display = 'none';
-            
-            // Hide hint if visible
-            const hint = document.getElementById('hint');
-            hint.classList.remove('show');
-            
-            // Reset riddle inputs and feedback
-            resetRiddleElements();
-            
-            // Clear input
-            const codeInput = document.getElementById('codeInput');
-            codeInput.value = '';
-            
-            // Scroll to top of page
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Show reset message
+            // Show reset message and reload page
             showResetMessage();
         }
 
-        function resetRiddleElements() {
-            // Reset all riddle inputs, buttons, and feedback
-            const levels = ['easy', 'medium', 'hard'];
-            
-            levels.forEach(level => {
-                const input = document.getElementById(`${level}Input`);
-                const feedback = document.getElementById(`${level}Feedback`);
-                const riddleDiv = document.getElementById(`${level}Riddle`);
-                const btn = document.getElementById(`${level}Btn`);
-                
-                if (input) {
-                    input.value = '';
-                    input.disabled = false;
-                }
-                if (feedback) {
-                    feedback.textContent = '';
-                    feedback.className = 'riddle-feedback';
-                    feedback.classList.remove('show', 'correct', 'incorrect');
-                }
-                if (riddleDiv) {
-                    riddleDiv.classList.remove('completed');
-                }
-                if (btn) {
-                    btn.disabled = false;
-                }
-            });
-        }
 
         function showResetMessage() {
-            // Create a temporary reset message
+            // Create a reset message that will reload the page
             const resetMessage = document.createElement('div');
             resetMessage.style.cssText = `
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                color: white;
+                font-family: 'Arial', sans-serif;
+            `;
+            
+            const messageContent = document.createElement('div');
+            messageContent.style.cssText = `
                 background: linear-gradient(145deg, #f8d7da, #f5c6cb);
                 border: 2px solid #dc3545;
                 border-radius: 15px;
-                padding: 20px;
+                padding: 30px;
                 color: #721c24;
-                font-size: 1.3rem;
+                font-size: 1.5rem;
                 font-weight: bold;
                 text-align: center;
-                z-index: 1000;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                animation: fadeInOut 3s ease-in-out;
+                max-width: 400px;
+                margin: 20px;
             `;
-            resetMessage.textContent = '❌ Wrong number! Game reset. Try again!';
             
-            // Add CSS animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeInOut {
-                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                }
+            messageContent.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
+                <div style="margin-bottom: 20px;">Wrong number!</div>
+                <div style="font-size: 1.2rem; margin-bottom: 20px;">Game is resetting...</div>
+                <div style="font-size: 1rem; opacity: 0.8;">Please wait a moment</div>
             `;
-            document.head.appendChild(style);
             
+            resetMessage.appendChild(messageContent);
             document.body.appendChild(resetMessage);
             
-            // Remove message after animation
+            // Reload the page after 3 seconds
             setTimeout(() => {
-                document.body.removeChild(resetMessage);
-                document.head.removeChild(style);
+                window.location.reload();
             }, 3000);
         }
 
