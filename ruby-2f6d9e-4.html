@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Let's Win! - Riddle 4 of 7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #87CEEB 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .puzzle-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .lamp-display {
+            font-size: 4rem;
+            margin: 20px 0;
+            animation: lampGlow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #ffd700);
+        }
+
+        @keyframes lampGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 10px #ffd700);
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 30px #ffd700);
+                transform: scale(1.05);
+            }
+        }
+
+        .instructions {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .slider-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 400px;
+            height: 300px;
+            margin: 30px auto;
+            border: 3px solid #34495e;
+            border-radius: 15px;
+            padding: 10px;
+            background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+        }
+
+        .slider-piece {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border: 2px solid #6c757d;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slider-piece:hover {
+            background: linear-gradient(145deg, #e9ecef, #dee2e6);
+            transform: scale(1.05);
+        }
+
+        .slider-piece.empty {
+            background: transparent;
+            border: 2px dashed #6c757d;
+            cursor: default;
+        }
+
+        .slider-piece.empty:hover {
+            transform: none;
+            background: transparent;
+        }
+
+        .slider-piece.empty.drag-over {
+            background: rgba(33, 150, 243, 0.2);
+            border-color: #2196f3;
+            border-style: solid;
+        }
+
+        .slider-piece.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg) scale(1.1);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .slider-piece.moving {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .slider-piece.correct {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            animation: correctPiece 0.5s ease-in-out;
+        }
+
+        .slider-piece.mobile-selected {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border-color: #ffc107;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.5);
+        }
+
+        @keyframes correctPiece {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .move-counter {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .success-message {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #155724;
+            font-size: 1.2rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hint {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #856404;
+            font-size: 1.1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .hint.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .puzzle-hint {
+            background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+            border: 2px solid #2196f3;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #0d47a1;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        .puzzle-hint h3 {
+            margin: 0 0 15px 0;
+            color: #1565c0;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .matrix-hint {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #90caf9;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .matrix-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 3px 0;
+        }
+
+        .matrix-cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #90caf9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 3px;
+        }
+
+        .matrix-cell.empty {
+            background: rgba(200, 200, 200, 0.5);
+            border-style: dashed;
+        }
+
+        .lamp-celebration {
+            animation: lampCelebration 2s ease-in-out;
+        }
+
+        @keyframes lampCelebration {
+            0% { 
+                filter: drop-shadow(0 0 10px #ffd700);
+                transform: scale(1) rotate(0deg);
+            }
+            25% { 
+                filter: drop-shadow(0 0 30px #ffd700) drop-shadow(0 0 50px #ffd700);
+                transform: scale(1.2) rotate(5deg);
+            }
+            50% { 
+                filter: drop-shadow(0 0 40px #ffd700) drop-shadow(0 0 60px #ffd700);
+                transform: scale(1.3) rotate(-5deg);
+            }
+            75% { 
+                filter: drop-shadow(0 0 30px #ffd700) drop-shadow(0 0 50px #ffd700);
+                transform: scale(1.2) rotate(3deg);
+            }
+            100% { 
+                filter: drop-shadow(0 0 10px #ffd700);
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .puzzle-container {
+                padding: 20px;
+            }
+            
+            .slider-container {
+                width: 320px;
+                height: 240px;
+            }
+            
+            .slider-piece {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💡 Let's Win!</h1>
+        <p>Riddle 4 of 7</p>
+    </div>
+
+    <div class="puzzle-container">
+        <div class="lamp-display" id="lampDisplay">💡</div>
+        
+        <div class="instructions">
+            💡 <em>Restore the light!</em><br>
+            Rearrange the pieces to complete the image of glowing park lamps.
+        </div>
+
+        <div class="puzzle-hint">
+            <h3>💡 Puzzle Hint</h3>
+            <p><strong>Goal:</strong> The last column (rightmost) should be completely empty!</p>
+            <p><strong>Some locations:</strong></p>
+            <div class="matrix-hint">
+                <div class="matrix-row">
+                    <div class="matrix-cell">💡</div>
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell empty"></div>
+                </div>
+                <div class="matrix-row">
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell">⭐</div>
+                    <div class="matrix-cell empty"></div>
+                </div>
+                <div class="matrix-row">
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell">☀️</div>
+                    <div class="matrix-cell">?</div>
+                    <div class="matrix-cell empty"></div>
+                </div>
+            </div>
+            <p><em>Matrix notation: [1,1]=💡, [2,3]=⭐, [3,2]=☀️</em></p>
+        </div>
+
+        <div class="move-counter" id="moveCounter">
+            Moves: 0
+        </div>
+
+        <div class="slider-container" id="sliderContainer">
+            <!-- Pieces will be generated by JavaScript -->
+        </div>
+
+        <div class="success-message" id="successMessage">
+            💡 You've restored the light!
+        </div>
+
+        <div class="hint" id="hint">
+            <strong>Next Location:</strong><br>
+            Go halfway down the hill — find the lone tree where shade and light meet.
+        </div>
+    </div>
+
+    <script>
+        // The correct arrangement (1-8, with 4 empty spaces)
+        const correctOrder = [1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 0, 0];
+        let currentOrder = [1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 0, 0];
+        let moveCount = 0;
+        let emptyIndices = [3, 7, 10, 11]; // Multiple empty spaces
+
+        // Lamp emojis for each piece
+        const lampPieces = [
+            '💡', '🔆', '✨', '🌟',
+            '💫', '⭐', '🔅', '☀️'
+        ];
+
+        function initSlider() {
+            shufflePuzzle();
+            createSlider();
+        }
+
+        function shufflePuzzle() {
+            // Shuffle the array while ensuring it's solvable
+            do {
+                for (let i = currentOrder.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [currentOrder[i], currentOrder[j]] = [currentOrder[j], currentOrder[i]];
+                }
+                // Update empty indices
+                emptyIndices = [];
+                currentOrder.forEach((value, index) => {
+                    if (value === 0) emptyIndices.push(index);
+                });
+            } while (isSolved());
+        }
+
+        function isSolvable() {
+            // Count inversions (simplified solvability check)
+            let inversions = 0;
+            for (let i = 0; i < currentOrder.length - 1; i++) {
+                for (let j = i + 1; j < currentOrder.length; j++) {
+                    if (currentOrder[i] > currentOrder[j] && currentOrder[i] !== 0 && currentOrder[j] !== 0) {
+                        inversions++;
+                    }
+                }
+            }
+            return inversions % 2 === 0;
+        }
+
+        function createSlider() {
+            const container = document.getElementById('sliderContainer');
+            container.innerHTML = '';
+
+            currentOrder.forEach((value, index) => {
+                const piece = document.createElement('div');
+                piece.className = 'slider-piece';
+                piece.dataset.index = index;
+                piece.dataset.value = value;
+
+                if (value === 0) {
+                    piece.classList.add('empty');
+                    piece.innerHTML = '';
+                } else {
+                    piece.innerHTML = lampPieces[value - 1];
+                    piece.draggable = true;
+                    piece.addEventListener('dragstart', handleDragStart);
+                    piece.addEventListener('dragend', handleDragEnd);
+                }
+
+                // Make empty spaces droppable
+                if (value === 0) {
+                    piece.addEventListener('dragover', handleDragOver);
+                    piece.addEventListener('drop', handleDrop);
+                    piece.addEventListener('dragenter', handleDragEnter);
+                    piece.addEventListener('dragleave', handleDragLeave);
+                }
+
+                container.appendChild(piece);
+            });
+
+            // Add touch listeners after creating the slider
+            addTouchListeners();
+        }
+
+        let draggedPiece = null;
+
+        function handleDragStart(e) {
+            draggedPiece = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+
+            if (!draggedPiece) return;
+
+            const sourceIndex = parseInt(draggedPiece.dataset.index);
+            const targetIndex = parseInt(e.target.dataset.index);
+
+            // Move the piece to the empty space
+            const pieceValue = currentOrder[sourceIndex];
+            currentOrder[sourceIndex] = 0; // Make source empty
+            currentOrder[targetIndex] = pieceValue; // Place piece in target
+
+            // Update empty indices
+            emptyIndices = [];
+            currentOrder.forEach((value, idx) => {
+                if (value === 0) emptyIndices.push(idx);
+            });
+
+            moveCount++;
+            updateMoveCounter();
+            createSlider();
+
+            // Check if puzzle is solved
+            if (isSolved()) {
+                setTimeout(() => {
+                    showSuccess();
+                }, 500);
+            }
+        }
+
+        function isSolved() {
+            return currentOrder.every((value, index) => value === correctOrder[index]);
+        }
+
+        function updateMoveCounter() {
+            document.getElementById('moveCounter').textContent = `Moves: ${moveCount}`;
+        }
+
+        function showSuccess() {
+            const lampDisplay = document.getElementById('lampDisplay');
+            lampDisplay.classList.add('lamp-celebration');
+            
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.add('show');
+            
+            setTimeout(() => {
+                const hint = document.getElementById('hint');
+                hint.classList.add('show');
+            }, 1000);
+        }
+
+        // Mobile support - simple tap to select and tap to place
+        let selectedPiece = null;
+
+        function addTouchListeners() {
+            // Add touch listeners to all pieces
+            document.querySelectorAll('.slider-piece').forEach(piece => {
+                if (!piece.classList.contains('empty')) {
+                    piece.addEventListener('click', handlePieceClick);
+                    piece.addEventListener('touchend', handlePieceClick);
+                }
+            });
+
+            // Add touch listeners to empty spaces
+            document.querySelectorAll('.slider-piece.empty').forEach(emptySpace => {
+                emptySpace.addEventListener('click', handleEmptySpaceClick);
+                emptySpace.addEventListener('touchend', handleEmptySpaceClick);
+            });
+        }
+
+        function handlePieceClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Deselect previous piece
+            if (selectedPiece) {
+                selectedPiece.classList.remove('mobile-selected');
+            }
+            
+            // Select new piece
+            selectedPiece = e.target;
+            selectedPiece.classList.add('mobile-selected');
+        }
+
+        function handleEmptySpaceClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!selectedPiece) return;
+            
+            const sourceIndex = parseInt(selectedPiece.dataset.index);
+            const targetIndex = parseInt(e.target.dataset.index);
+
+            // Move the piece
+            const pieceValue = currentOrder[sourceIndex];
+            currentOrder[sourceIndex] = 0;
+            currentOrder[targetIndex] = pieceValue;
+
+            // Update empty indices
+            emptyIndices = [];
+            currentOrder.forEach((value, idx) => {
+                if (value === 0) emptyIndices.push(idx);
+            });
+
+            // Deselect piece
+            selectedPiece.classList.remove('mobile-selected');
+            selectedPiece = null;
+
+            moveCount++;
+            updateMoveCounter();
+            createSlider();
+            addTouchListeners(); // Re-add listeners after recreation
+
+            if (isSolved()) {
+                setTimeout(() => {
+                    showSuccess();
+                }, 500);
+            }
+        }
+
+        // Initialize the slider puzzle when page loads
+        initSlider();
+    </script>
+</body>
+</html>

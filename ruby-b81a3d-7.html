@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Let's Win! - Riddle 7 of 7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #FF6347 0%, #FF4500 25%, #FFD700 50%, #FFA500 75%, #FF8C00 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .puzzle-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .pavilion-display {
+            font-size: 4rem;
+            margin: 20px 0;
+            animation: pavilionGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pavilionGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 10px #FFD700);
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 30px #FFD700);
+                transform: scale(1.05);
+            }
+        }
+
+        .instructions {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .letters-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .letter-tile {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border: 3px solid #6c757d;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: grab;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .letter-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .letter-tile:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .letter-tile.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        .letter-tile.placed {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            color: #155724;
+            cursor: default;
+            position: relative;
+            opacity: 0.7;
+        }
+
+        .letter-tile.placed::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .letter-tile.locked {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-color: #6c757d;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.5;
+            position: relative;
+        }
+
+        .letter-tile.locked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: #6c757d;
+            transform: translateY(-50%) rotate(-15deg);
+            z-index: 1;
+        }
+
+        .letter-tile.unlocked {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border-color: #ffc107;
+            color: #856404;
+            animation: unlockGlow 2s ease-in-out;
+        }
+
+        @keyframes unlockGlow {
+            0%, 100% { 
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            50% { 
+                box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+            }
+        }
+
+        /* Question Modal Styles */
+        .question-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #FF6347, #FF4500);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-body p {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: linear-gradient(145deg, #e9ecef, #f8f9fa);
+            border: 2px solid #6c757d;
+            border-radius: 15px;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: linear-gradient(145deg, #d1ecf1, #bee5eb);
+            border-color: #17a2b8;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            color: #155724;
+            position: relative;
+        }
+
+        .option-btn.correct::after {
+            content: '✓';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+            border-color: #dc3545;
+            color: #721c24;
+            position: relative;
+        }
+
+        .option-btn.incorrect::after {
+            content: '✗';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border-color: #ffc107;
+            color: #856404;
+            transform: scale(1.02);
+        }
+
+        .question-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+            animation: feedbackSlideIn 0.5s ease-out;
+        }
+
+        @keyframes feedbackSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-feedback.correct {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            color: #155724;
+            display: block;
+        }
+
+        .question-feedback.incorrect {
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+            border: 2px solid #dc3545;
+            color: #721c24;
+            display: block;
+        }
+
+        .word-slots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .word-slot {
+            background: linear-gradient(145deg, #e8f5e8, #d4edda);
+            border: 3px dashed #28a745;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 60px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .word-slot.drag-over {
+            background: linear-gradient(145deg, #d1ecf1, #bee5eb);
+            border-color: #17a2b8;
+            transform: scale(1.05);
+        }
+
+        .word-slot.filled {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            border-style: solid;
+        }
+
+        .word-slot.wrong {
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+            border-color: #dc3545;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .slot-content {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #155724;
+        }
+
+        .progress {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .success-message {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #155724;
+            font-size: 1.2rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .final-message {
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            border: 3px solid #FF6347;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            text-align: center;
+        }
+
+        .final-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .bounce {
+            animation: bounce 1s ease-in-out;
+        }
+
+        .pavilion-celebration {
+            animation: pavilionCelebration 2s ease-in-out;
+        }
+
+        @keyframes pavilionCelebration {
+            0% { 
+                filter: drop-shadow(0 0 10px #FFD700);
+                transform: scale(1) rotate(0deg);
+            }
+            25% { 
+                filter: drop-shadow(0 0 30px #FFD700) drop-shadow(0 0 50px #FFD700);
+                transform: scale(1.2) rotate(5deg);
+            }
+            50% { 
+                filter: drop-shadow(0 0 40px #FFD700) drop-shadow(0 0 60px #FFD700);
+                transform: scale(1.3) rotate(-5deg);
+            }
+            75% { 
+                filter: drop-shadow(0 0 30px #FFD700) drop-shadow(0 0 50px #FFD700);
+                transform: scale(1.2) rotate(3deg);
+            }
+            100% { 
+                filter: drop-shadow(0 0 10px #FFD700);
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes resetMessageSlide {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 5px;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .puzzle-container {
+                padding: 15px;
+                margin: 10px 0;
+            }
+            
+            .pavilion-display {
+                font-size: 3rem;
+                margin: 15px 0;
+            }
+            
+            .instructions {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+            
+            .letters-container,
+            .word-slots {
+                gap: 8px;
+                margin: 20px 0;
+            }
+            
+            .letter-tile {
+                font-size: 1.8rem;
+                padding: 12px;
+                min-width: 45px;
+                min-height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .word-slot {
+                min-width: 45px;
+                min-height: 60px;
+                padding: 15px;
+            }
+            
+            .slot-content {
+                font-size: 1.8rem;
+            }
+            
+            .progress {
+                font-size: 1rem;
+                margin: 15px 0;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 85vh;
+            }
+            
+            .modal-header {
+                padding: 15px 20px;
+            }
+            
+            .modal-header h3 {
+                font-size: 1.3rem;
+            }
+            
+            .modal-body {
+                padding: 20px;
+                max-height: calc(85vh - 80px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .modal-body p {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+            
+            .option-btn {
+                padding: 12px 15px;
+                font-size: 1rem;
+            }
+            
+            .success-message,
+            .final-message {
+                font-size: 1.1rem;
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .pavilion-display {
+                font-size: 2.5rem;
+            }
+            
+            .letter-tile {
+                font-size: 1.5rem;
+                padding: 10px;
+                min-width: 40px;
+                min-height: 40px;
+            }
+            
+            .word-slot {
+                min-width: 40px;
+                min-height: 55px;
+                padding: 12px;
+            }
+            
+            .slot-content {
+                font-size: 1.5rem;
+            }
+            
+            .letters-container,
+            .word-slots {
+                gap: 6px;
+            }
+            
+            .modal-content {
+                width: 98%;
+                margin: 2% auto;
+                max-height: 96vh;
+            }
+            
+            .modal-body {
+                padding: 15px;
+                max-height: calc(96vh - 70px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌇 Let's Win!</h1>
+        <p>Riddle 7 of 7 - FINAL RIDDLE</p>
+    </div>
+
+    <div class="puzzle-container">
+        <div class="pavilion-display" id="pavilionDisplay">🌇</div>
+        
+        <div class="instructions">
+            🌇 <em>Unlock the mystery word!</em><br>
+            Answer questions to unlock letters and complete the puzzle.
+        </div>
+
+        <div class="progress" id="progress">
+            Questions answered: 0 / 6 | Letters placed: 0 / 6
+        </div>
+
+        <!-- Question Modal -->
+        <div class="question-modal" id="questionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="questionTitle">Qatar Oil & Gas History</h3>
+                    <span class="close-btn" id="closeModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p id="questionText"></p>
+                    <div class="options" id="optionsContainer"></div>
+                    <div class="question-feedback" id="questionFeedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="letters-container">
+            <div class="letter-tile locked" draggable="false" data-letter="T" data-question="5">T</div>
+            <div class="letter-tile unlocked" draggable="true" data-letter="S" data-question="0">S</div>
+            <div class="letter-tile locked" draggable="false" data-letter="E" data-question="4">E</div>
+            <div class="letter-tile locked" draggable="false" data-letter="N" data-question="2">N</div>
+            <div class="letter-tile locked" draggable="false" data-letter="U" data-question="1">U</div>
+            <div class="letter-tile locked" draggable="false" data-letter="S" data-question="3">S</div>
+        </div>
+
+        <div class="word-slots">
+            <div class="word-slot" data-slot="0"></div>
+            <div class="word-slot" data-slot="1"></div>
+            <div class="word-slot" data-slot="2"></div>
+            <div class="word-slot" data-slot="3"></div>
+            <div class="word-slot" data-slot="4"></div>
+            <div class="word-slot" data-slot="5"></div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            🎉 Congratulations! You've completed the word!
+        </div>
+
+        <div class="final-message" id="finalMessage">
+            🌇 <strong>Congratulations!</strong><br><br>
+            You've mastered Qatar's oil and gas history and completed the hunt!<br><br>
+            Return to the organizer and say this exact phrase:<br>
+            <strong style="font-size: 1.5rem; color: #FF6347; display: block; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.8); border-radius: 10px;">"I am Team X, I saw the sunset at the end of Katara's park"</strong>
+            <em style="font-size: 1rem; color: #666;">This phrase will guide you to your next location!</em>
+        </div>
+    </div>
+
+    <script>
+        const correctWord = "SUNSET";
+        let placedLetters = 0;
+        let questionsAnswered = 0;
+        let wordSlots = new Array(6).fill(null);
+        let currentQuestionIndex = -1;
+
+        // Qatar Oil & Gas History Questions
+        const questions = [
+            {
+                question: "In which year was oil first discovered in Qatar?",
+                options: ["1939", "1940", "1941", "1942"],
+                correct: 1,
+                explanation: "Oil was first discovered in Qatar in 1940 at the Dukhan field."
+            },
+            {
+                question: "What is the name of Qatar's largest offshore oil field?",
+                options: ["Al-Shaheen", "Dukhan", "Maydan Mahzam", "Idd El-Shargi"],
+                correct: 0,
+                explanation: "Al-Shaheen is Qatar's largest offshore oil field, operated by Maersk Oil."
+            },
+            {
+                question: "Which company was the first to discover natural gas in Qatar?",
+                options: ["Shell", "ExxonMobil", "Total", "BP"],
+                correct: 0,
+                explanation: "Shell was the first company to discover natural gas in Qatar in 1971."
+            },
+            {
+                question: "What is the name of the world's largest single natural gas field?",
+                options: ["North Field", "South Pars", "Ghawar", "Burgan"],
+                correct: 0,
+                explanation: "The North Field in Qatar is the world's largest single natural gas field."
+            },
+            {
+                question: "In which year did Qatar become the world's largest LNG exporter?",
+                options: ["2006", "2007", "2008", "2009"],
+                correct: 0,
+                explanation: "Qatar became the world's largest LNG exporter in 2006."
+            },
+            {
+                question: "What is the name of Qatar's national oil company?",
+                options: ["Qatar Petroleum", "Qatar Energy", "Qatar Gas", "Qatar Oil"],
+                correct: 1,
+                explanation: "Qatar Energy (formerly Qatar Petroleum) is the national oil company."
+            }
+        ];
+
+        // Initialize the game
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            setupEventListeners();
+            initializeFirstLetter();
+        });
+
+        function setupEventListeners() {
+            // Letter tile click events
+            document.querySelectorAll('.letter-tile').forEach(tile => {
+                tile.addEventListener('click', handleLetterClick);
+            });
+
+            // Modal close event
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            
+            // Make word slots droppable (only for unlocked letters)
+            document.querySelectorAll('.word-slot').forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragenter', handleDragEnter);
+                slot.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function initializeFirstLetter() {
+            // Set up the first letter (S) as unlocked and draggable
+            const firstLetter = document.querySelector('[data-question="0"]');
+            firstLetter.addEventListener('dragstart', handleDragStart);
+            firstLetter.addEventListener('dragend', handleDragEnd);
+        }
+
+        function handleLetterClick(e) {
+            // This function is no longer needed since questions appear automatically
+            // after placing letters in correct positions
+        }
+
+        function showQuestion(questionIndex) {
+            currentQuestionIndex = questionIndex;
+            const question = questions[questionIndex];
+            
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.style.pointerEvents = 'auto';
+                button.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById('questionFeedback').style.display = 'none';
+            document.getElementById('questionModal').style.display = 'block';
+        }
+
+        function selectAnswer(selectedIndex) {
+            const question = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('questionFeedback');
+            
+            // Mark the selected option
+            options[selectedIndex].classList.add('selected');
+            
+            // Disable all buttons immediately
+            options.forEach((btn, index) => {
+                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
+                if (index !== selectedIndex) {
+                    btn.style.opacity = '0.4';
+                }
+            });
+            
+            // Show feedback after a brief delay
+            setTimeout(() => {
+                if (selectedIndex === question.correct) {
+                    // Correct answer
+                    options[selectedIndex].classList.add('correct');
+                    feedback.textContent = `✅ Correct! ${question.explanation}`;
+                    feedback.className = 'question-feedback correct';
+                    
+                    // Unlock the next letter
+                    setTimeout(() => {
+                        unlockLetter(currentQuestionIndex);
+                        closeModal();
+                    }, 2500);
+                } else {
+                    // Wrong answer - RESET THE GAME
+                    options[selectedIndex].classList.add('incorrect');
+                    feedback.textContent = `❌ Wrong answer! Game resets...`;
+                    feedback.className = 'question-feedback incorrect';
+                    
+                    setTimeout(() => {
+                        resetGame();
+                        closeModal();
+                    }, 2500);
+                }
+            }, 500);
+        }
+
+        function unlockLetter(questionIndex) {
+            const letterTile = document.querySelector(`[data-question="${questionIndex}"]`);
+            letterTile.classList.remove('locked');
+            letterTile.classList.add('unlocked');
+            letterTile.draggable = true;
+            
+            // Set up drag events for the newly unlocked letter
+            letterTile.addEventListener('dragstart', handleDragStart);
+            letterTile.addEventListener('dragend', handleDragEnd);
+            
+            questionsAnswered++;
+            updateProgress();
+        }
+
+        function lockAllRemainingTiles() {
+            document.querySelectorAll('.letter-tile').forEach(tile => {
+                if (!tile.classList.contains('placed')) {
+                    tile.classList.add('locked');
+                    tile.classList.remove('unlocked');
+                    tile.draggable = false;
+                    tile.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        function showQuestionForNextLetter() {
+            // Find the next letter that needs to be unlocked
+            const nextQuestionIndex = placedLetters; // This will be the index of the next question
+            if (nextQuestionIndex < 6) {
+                showQuestion(nextQuestionIndex);
+            }
+        }
+
+        function resetGame() {
+            // Reset all variables
+            placedLetters = 0;
+            questionsAnswered = 0;
+            wordSlots = new Array(6).fill(null);
+            currentQuestionIndex = -1;
+            
+            // Clear all word slots
+            document.querySelectorAll('.word-slot').forEach(slot => {
+                slot.classList.remove('filled', 'wrong', 'drag-over');
+                slot.innerHTML = '';
+            });
+            
+            // Reset all letter tiles to initial state
+            document.querySelectorAll('.letter-tile').forEach((tile, index) => {
+                tile.classList.remove('placed', 'unlocked', 'locked');
+                tile.draggable = false;
+                tile.style.cursor = 'default';
+                tile.style.opacity = '1';
+                
+                // Only the first letter (S) should be unlocked initially
+                if (index === 1) { // The S tile is at index 1 in our shuffled order
+                    tile.classList.add('unlocked');
+                    tile.draggable = true;
+                    tile.style.cursor = 'grab';
+                } else {
+                    tile.classList.add('locked');
+                    tile.style.cursor = 'not-allowed';
+                }
+            });
+            
+            // Update progress
+            updateProgress();
+            
+            // Show reset message
+            showResetMessage();
+        }
+
+        function showResetMessage() {
+            // Create a temporary message
+            const resetMessage = document.createElement('div');
+            resetMessage.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+                border: 3px solid #dc3545;
+                border-radius: 15px;
+                padding: 20px 30px;
+                color: #721c24;
+                font-size: 1.3rem;
+                font-weight: bold;
+                text-align: center;
+                z-index: 3000;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                animation: resetMessageSlide 0.5s ease-out;
+            `;
+            resetMessage.innerHTML = '🔄 Game Reset!<br>Start over and be more careful!';
+            document.body.appendChild(resetMessage);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                resetMessage.remove();
+            }, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('questionModal').style.display = 'none';
+        }
+
+        function handleDragStart(e) {
+            if (e.target.classList.contains('placed')) {
+                e.preventDefault();
+                return;
+            }
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+
+            const draggedLetter = document.querySelector('.dragging');
+            if (!draggedLetter || draggedLetter.classList.contains('placed')) return;
+
+            const slotIndex = parseInt(e.target.dataset.slot);
+            const letter = draggedLetter.dataset.letter;
+
+            // Check if this is the correct position for this letter
+            if (letter === correctWord[slotIndex]) {
+                // Correct placement
+                e.target.classList.add('filled');
+                e.target.classList.remove('wrong');
+                
+                // Place the letter in the slot
+                const slotContent = document.createElement('div');
+                slotContent.className = 'slot-content';
+                slotContent.textContent = letter;
+                e.target.innerHTML = '';
+                e.target.appendChild(slotContent);
+                e.target.classList.add('bounce');
+                
+                // Mark letter as placed
+                draggedLetter.classList.add('placed');
+                draggedLetter.style.cursor = 'default';
+                draggedLetter.draggable = false;
+                
+                wordSlots[slotIndex] = letter;
+                placedLetters++;
+                updateProgress();
+                
+                // Lock all remaining tiles and show question for next letter
+                lockAllRemainingTiles();
+                
+                // Check if word is complete
+                if (placedLetters === 6) {
+                    setTimeout(() => {
+                        showSuccess();
+                    }, 500);
+                } else {
+                    // Show question for the next letter after a short delay
+                    setTimeout(() => {
+                        showQuestionForNextLetter();
+                    }, 1000);
+                }
+            } else {
+                // Wrong placement
+                e.target.classList.add('wrong');
+                setTimeout(() => {
+                    e.target.classList.remove('wrong');
+                }, 500);
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('progress').textContent = `Questions answered: ${questionsAnswered} / 6 | Letters placed: ${placedLetters} / 6`;
+        }
+
+        function showSuccess() {
+            const pavilionDisplay = document.getElementById('pavilionDisplay');
+            pavilionDisplay.classList.add('pavilion-celebration');
+            
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.add('show');
+            
+            // Create confetti
+            createConfetti();
+            
+            setTimeout(() => {
+                const finalMessage = document.getElementById('finalMessage');
+                finalMessage.classList.add('show');
+            }, 1000);
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti';
+            document.body.appendChild(confettiContainer);
+
+            const colors = ['#FFD700', '#FFA500', '#FF6347', '#FF4500', '#32CD32', '#1E90FF'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.className = 'confetti-piece';
+                confettiPiece.style.left = Math.random() * 100 + '%';
+                confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confettiPiece.style.animationDelay = Math.random() * 3 + 's';
+                confettiPiece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confettiContainer.appendChild(confettiPiece);
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                confettiContainer.remove();
+            }, 5000);
+        }
+
+        // Enhanced touch support for mobile
+        let touchStartTile = null;
+        let touchStartPos = null;
+        let touchMoved = false;
+
+        document.querySelectorAll('.letter-tile').forEach(tile => {
+            tile.addEventListener('touchstart', function(e) {
+                if (this.classList.contains('placed') || this.classList.contains('locked')) return;
+                e.preventDefault();
+                touchStartTile = this;
+                touchStartPos = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+                touchMoved = false;
+                this.style.opacity = '0.8';
+                this.style.transform = 'scale(1.05)';
+                this.style.zIndex = '1000';
+                this.style.transition = 'none';
+                
+                // Add haptic feedback if available
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            });
+
+            tile.addEventListener('touchmove', function(e) {
+                if (!touchStartTile || touchStartTile !== this) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartPos.x;
+                const deltaY = touch.clientY - touchStartPos.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Only start moving if moved more than 10px
+                if (distance > 10) {
+                    touchMoved = true;
+                    this.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
+                    
+                    // Highlight potential drop zones
+                    const closestSlot = findClosestSlot(touch.clientX, touch.clientY);
+                    document.querySelectorAll('.word-slot').forEach(slot => {
+                        slot.classList.remove('drag-over');
+                    });
+                    if (closestSlot) {
+                        closestSlot.classList.add('drag-over');
+                    }
+                }
+            });
+
+            tile.addEventListener('touchend', function(e) {
+                if (!touchStartTile || touchStartTile !== this) return;
+                e.preventDefault();
+                
+                this.style.opacity = '1';
+                this.style.transform = '';
+                this.style.zIndex = '';
+                this.style.transition = 'all 0.3s ease';
+                
+                // Remove drag-over from all slots
+                document.querySelectorAll('.word-slot').forEach(slot => {
+                    slot.classList.remove('drag-over');
+                });
+                
+                // Find the closest word slot
+                const touch = e.changedTouches[0];
+                const closestSlot = findClosestSlot(touch.clientX, touch.clientY);
+                
+                if (closestSlot && touchMoved) {
+                    // Simulate drop on the closest slot
+                    const slotIndex = parseInt(closestSlot.dataset.slot);
+                    const letter = this.dataset.letter;
+                    
+                    if (letter === correctWord[slotIndex]) {
+                        // Correct placement
+                        closestSlot.classList.add('filled');
+                        closestSlot.classList.remove('wrong');
+                        
+                        const slotContent = document.createElement('div');
+                        slotContent.className = 'slot-content';
+                        slotContent.textContent = letter;
+                        closestSlot.innerHTML = '';
+                        closestSlot.appendChild(slotContent);
+                        closestSlot.classList.add('bounce');
+                        
+                        this.classList.add('placed');
+                        this.style.cursor = 'default';
+                        this.draggable = false;
+                        
+                        wordSlots[slotIndex] = letter;
+                        placedLetters++;
+                        updateProgress();
+                        
+                        // Lock all remaining tiles and show question for next letter
+                        lockAllRemainingTiles();
+                        
+                        if (placedLetters === 6) {
+                            setTimeout(() => {
+                                showSuccess();
+                            }, 500);
+                        } else {
+                            // Show question for the next letter after a short delay
+                            setTimeout(() => {
+                                showQuestionForNextLetter();
+                            }, 1000);
+                        }
+                    } else {
+                        // Wrong placement
+                        closestSlot.classList.add('wrong');
+                        setTimeout(() => {
+                            closestSlot.classList.remove('wrong');
+                        }, 500);
+                    }
+                } else if (!touchMoved) {
+                    // Simple tap - could be used for other interactions
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                }
+                
+                touchStartTile = null;
+                touchStartPos = null;
+                touchMoved = false;
+            });
+        });
+
+        function findClosestSlot(x, y) {
+            const slots = document.querySelectorAll('.word-slot');
+            let closestSlot = null;
+            let closestDistance = Infinity;
+            
+            slots.forEach(slot => {
+                const rect = slot.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestSlot = slot;
+                }
+            });
+            
+            // Increase touch target area for mobile (150px instead of 100px)
+            const touchThreshold = window.innerWidth <= 768 ? 150 : 100;
+            return closestDistance < touchThreshold ? closestSlot : null;
+        }
+
+        // Add mobile-specific improvements
+        function addMobileEnhancements() {
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // Add viewport meta tag if not present
+            if (!document.querySelector('meta[name="viewport"]')) {
+                const viewport = document.createElement('meta');
+                viewport.name = 'viewport';
+                viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                document.head.appendChild(viewport);
+            }
+
+            // Improve modal for mobile - allow scrolling in modal body
+            const modal = document.getElementById('questionModal');
+            const modalBody = document.querySelector('.modal-body');
+            if (modal && modalBody) {
+                // Prevent background scrolling when modal is open
+                modal.addEventListener('touchmove', function(e) {
+                    // Only prevent if touch is outside modal body
+                    if (!modalBody.contains(e.target)) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+        }
+
+        // Initialize mobile enhancements when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            addMobileEnhancements();
+        });
+
+        // Word slots no longer need touch events since we handle everything in letter tile events
+    </script>
+</body>
+</html>

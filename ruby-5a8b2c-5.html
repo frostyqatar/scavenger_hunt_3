@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Let's Win! - Riddle 5 of 7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #87CEEB 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .puzzle-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .instructions {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .tree-container {
+            position: relative;
+            margin: 30px auto;
+            width: 400px;
+            height: 500px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .tree-container.shaking {
+            animation: shakeTree 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shakeTree {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-5px) rotate(-1deg); }
+            75% { transform: translateX(5px) rotate(1deg); }
+        }
+
+        .tree {
+            font-size: 8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
+        }
+
+        .tree:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .leaves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .leaf {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: all 2s ease-out;
+            pointer-events: none;
+        }
+
+        .leaf.falling {
+            opacity: 1;
+            animation: fall 3s ease-in forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(400px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .clue-reveal {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+            font-size: 1.1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        .clue-reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 200px;
+        }
+
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sequence-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .sequence-item {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #495057;
+            min-width: 50px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item.revealed {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .sequence-item.wrong {
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+            border-color: #dc3545;
+            color: #721c24;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .input-section {
+            margin: 20px 0;
+        }
+
+        .code-input {
+            font-size: 1.5rem;
+            padding: 15px;
+            border: 3px solid #6c757d;
+            border-radius: 10px;
+            text-align: center;
+            width: 250px;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 10px rgba(23, 162, 184, 0.3);
+        }
+
+        .submit-btn {
+            background: linear-gradient(145deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(145deg, #138496, #117a8b);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .success-message {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #155724;
+            font-size: 1.2rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hint {
+            background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #856404;
+            font-size: 1.1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .hint.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .final-riddle {
+            background: linear-gradient(145deg, #e8f4fd, #d1ecf1);
+            border: 2px solid #17a2b8;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .final-riddle.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .final-riddle h3 {
+            color: #0c5460;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .riddle-levels {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .riddle-level {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .riddle-level.easy {
+            border-color: #28a745;
+        }
+
+        .riddle-level.medium {
+            border-color: #ffc107;
+        }
+
+        .riddle-level.hard {
+            border-color: #dc3545;
+        }
+
+        .riddle-level.completed {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+        }
+
+        .riddle-level h4 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .riddle-text {
+            font-size: 1.1rem;
+            color: #495057;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .capital-input {
+            font-size: 1.2rem;
+            padding: 10px;
+            border: 2px solid #6c757d;
+            border-radius: 8px;
+            text-align: center;
+            width: 200px;
+            margin: 0 10px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .capital-input:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 5px rgba(23, 162, 184, 0.3);
+        }
+
+        .riddle-btn {
+            background: linear-gradient(145deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .riddle-btn:hover {
+            background: linear-gradient(145deg, #138496, #117a8b);
+            transform: translateY(-1px);
+        }
+
+        .riddle-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .riddle-feedback {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .riddle-feedback.show {
+            opacity: 1;
+        }
+
+        .riddle-feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .riddle-feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .timer.warning {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 800px) {
+            .tree-container {
+                width: 300px;
+                height: 400px;
+            }
+            
+            .tree {
+                font-size: 6rem;
+            }
+            
+            .sequence-display {
+                gap: 5px;
+            }
+            
+            .sequence-item {
+                min-width: 40px;
+                padding: 8px 12px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌳 Let's Win!</h1>
+        <p>Riddle 5 of 7 - The Ancient Tree's Secret</p>
+    </div>
+
+    <div class="puzzle-container">
+        <div class="instructions">
+            🌳 <em>Shake the ancient tree to reveal its hidden wisdom!</em><br>
+            Work together as a team to uncover the secret sequence.
+        </div>
+
+        <div class="timer" id="timer">Time: 15:00</div>
+
+        <div class="tree-container" id="treeContainer">
+            <div class="tree">🌳</div>
+            <div class="leaves" id="leaves"></div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="clue-reveal" id="clue1">
+            <strong>Clue 1:</strong> The tree remembers the order of seasons. Each leaf that falls reveals a number. Collect them in the order they appear!
+        </div>
+
+        <div class="clue-reveal" id="clue2">
+            <strong>Clue 2:</strong> The sequence is not random! Look for patterns in nature - each number reveals the next. Find the possible sequence!
+        </div>
+
+
+
+        <div class="sequence-display" id="sequenceDisplay">
+            <!-- Sequence items will be generated by JavaScript -->
+        </div>
+
+        <div class="input-section">
+            <input type="text" class="code-input" id="codeInput" placeholder="Enter number" maxlength="3">
+            <button class="submit-btn" id="submitBtn">Submit</button>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            🌳 The ancient tree's secret is revealed! You've proven your teamwork!
+        </div>
+
+        <div class="final-riddle" id="finalRiddle">
+            <h3>🌍 Final Challenge: Capital Cities</h3>
+            <p>Complete these three capital city riddles to reveal your next location!</p>
+            
+            <div class="riddle-levels">
+                <div class="riddle-level easy" id="easyRiddle">
+                    <h4>🟢 Easy</h4>
+                    <p class="riddle-text">The capital of the country that gave us pizza and pasta</p>
+                    <input type="text" class="capital-input" id="easyInput" placeholder="Enter capital">
+                    <button class="riddle-btn" id="easyBtn">Submit</button>
+                    <div class="riddle-feedback" id="easyFeedback"></div>
+                </div>
+                
+                <div class="riddle-level medium" id="mediumRiddle">
+                    <h4>🟡 Medium</h4>
+                    <p class="riddle-text">The capital of the country where the sun never sets on the empire</p>
+                    <input type="text" class="capital-input" id="mediumInput" placeholder="Enter capital">
+                    <button class="riddle-btn" id="mediumBtn">Submit</button>
+                    <div class="riddle-feedback" id="mediumFeedback"></div>
+                </div>
+                
+                <div class="riddle-level hard" id="hardRiddle">
+                    <h4>🔴 Hard</h4>
+                    <p class="riddle-text">The capital of the country that spans two continents and has the most time zones</p>
+                    <input type="text" class="capital-input" id="hardInput" placeholder="Enter capital">
+                    <button class="riddle-btn" id="hardBtn">Submit</button>
+                    <div class="riddle-feedback" id="hardFeedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hint" id="hint">
+            <strong>Next Location:</strong><br>
+            Follow the path where the fallen leaves lead — to the place where earth meets sky and time stands still.
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            leavesShaken: 0,
+            sequence: [],
+            revealedSequence: [],
+            currentStep: 0,
+            teamMembers: [],
+            timeRemaining: 900, // 15 minutes in seconds
+            gamePhase: 'shaking', // shaking, coordination, input, final-riddle
+            riddleProgress: {
+                easy: false,
+                medium: false,
+                hard: false
+            }
+        };
+
+        // Fibonacci sequence (first 15 numbers)
+        const fibonacciSequence = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610];
+        
+        // Capital city answers
+        const capitalAnswers = {
+            easy: ['rome', 'roma'],
+            medium: ['london'],
+            hard: ['moscow', 'moskva']
+        };
+        
+        // Leaf positions and timing
+        const leafPositions = [
+            {x: 20, y: 10, delay: 0},
+            {x: 80, y: 15, delay: 200},
+            {x: 60, y: 25, delay: 400},
+            {x: 40, y: 20, delay: 600},
+            {x: 70, y: 30, delay: 800},
+            {x: 30, y: 35, delay: 1000},
+            {x: 90, y: 40, delay: 1200},
+            {x: 50, y: 45, delay: 1400},
+            {x: 75, y: 50, delay: 1600},
+            {x: 25, y: 55, delay: 1800},
+            {x: 85, y: 60, delay: 2000},
+            {x: 45, y: 65, delay: 2200},
+            {x: 65, y: 70, delay: 2400},
+            {x: 35, y: 75, delay: 2600},
+            {x: 55, y: 80, delay: 2800}
+        ];
+
+        // Initialize the game
+        function initGame() {
+            createSequenceDisplay();
+            startTimer();
+            setupEventListeners();
+        }
+
+
+        function createSequenceDisplay() {
+            const sequenceDisplay = document.getElementById('sequenceDisplay');
+            sequenceDisplay.innerHTML = '';
+            
+            for (let i = 0; i < 15; i++) {
+                const item = document.createElement('div');
+                item.className = 'sequence-item';
+                item.id = `seq-${i}`;
+                item.textContent = '?';
+                sequenceDisplay.appendChild(item);
+            }
+        }
+
+        function setupEventListeners() {
+            const treeContainer = document.getElementById('treeContainer');
+            const submitBtn = document.getElementById('submitBtn');
+            const codeInput = document.getElementById('codeInput');
+
+            treeContainer.addEventListener('click', shakeTree);
+            submitBtn.addEventListener('click', submitNumber);
+            codeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitNumber();
+                }
+            });
+        }
+
+        function shakeTree() {
+            if (gameState.gamePhase !== 'shaking') return;
+            
+            const treeContainer = document.getElementById('treeContainer');
+            const leaves = document.getElementById('leaves');
+            
+            // Add shaking animation
+            treeContainer.classList.add('shaking');
+            
+            // Create falling leaves
+            leafPositions.forEach((pos, index) => {
+                setTimeout(() => {
+                    createFallingLeaf(pos, fibonacciSequence[index]);
+                }, pos.delay);
+            });
+            
+            // Stop shaking after animation
+            setTimeout(() => {
+                treeContainer.classList.remove('shaking');
+                gameState.leavesShaken++;
+                
+                if (gameState.leavesShaken >= 3) {
+                    revealClue(1);
+                    setTimeout(() => revealClue(2), 2000);
+                    setTimeout(() => {
+                        startInputPhase();
+                    }, 4000);
+                }
+            }, 3000);
+        }
+
+        function createFallingLeaf(position, number) {
+            const leaves = document.getElementById('leaves');
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf falling';
+            leaf.textContent = '🍃';
+            leaf.style.left = position.x + '%';
+            leaf.style.top = position.y + '%';
+            leaf.dataset.number = number;
+            
+            leaves.appendChild(leaf);
+            
+            // Remove leaf after animation
+            setTimeout(() => {
+                if (leaf.parentNode) {
+                    leaf.parentNode.removeChild(leaf);
+                }
+            }, 3000);
+        }
+
+        function revealClue(clueNumber) {
+            const clue = document.getElementById(`clue${clueNumber}`);
+            clue.classList.add('show');
+        }
+
+
+        function startInputPhase() {
+            gameState.gamePhase = 'input';
+            
+            // Show the sequence with some numbers revealed
+            revealSequenceNumbers();
+        }
+
+        function revealSequenceNumbers() {
+            // Reveal every 3rd number as a hint
+            for (let i = 0; i < 15; i += 3) {
+                const item = document.getElementById(`seq-${i}`);
+                item.textContent = fibonacciSequence[i];
+                item.classList.add('revealed');
+            }
+        }
+
+        function submitNumber() {
+            const codeInput = document.getElementById('codeInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const input = codeInput.value.trim();
+            
+            if (!input) return;
+            
+            const number = parseInt(input);
+            const expectedNumber = fibonacciSequence[gameState.currentStep];
+            
+            if (number === expectedNumber) {
+                // Correct number
+                const item = document.getElementById(`seq-${gameState.currentStep}`);
+                item.textContent = number;
+                item.classList.add('revealed');
+                
+                gameState.currentStep++;
+                codeInput.value = '';
+                
+                // Update progress
+                updateProgress();
+                
+                // Check if complete
+                if (gameState.currentStep >= 15) {
+                    showSuccess();
+                }
+            } else {
+                // Wrong number - reset the game
+                const item = document.getElementById(`seq-${gameState.currentStep}`);
+                item.classList.add('wrong');
+                
+                setTimeout(() => {
+                    resetGame();
+                }, 1000);
+            }
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progress = (gameState.currentStep / 15) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function resetGame() {
+            // Reset game state
+            gameState.currentStep = 0;
+            gameState.leavesShaken = 0;
+            gameState.gamePhase = 'shaking';
+            
+            // Reset progress bar
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = '0%';
+            
+            // Reset sequence display
+            createSequenceDisplay();
+            
+            // Hide all clues
+            document.querySelectorAll('.clue-reveal').forEach(clue => {
+                clue.classList.remove('show');
+            });
+            
+            // Hide success message if visible
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.remove('show');
+            
+            // Hide final riddle if visible
+            const finalRiddle = document.getElementById('finalRiddle');
+            finalRiddle.classList.remove('show');
+            finalRiddle.style.display = 'none';
+            
+            // Hide hint if visible
+            const hint = document.getElementById('hint');
+            hint.classList.remove('show');
+            
+            // Clear input
+            const codeInput = document.getElementById('codeInput');
+            codeInput.value = '';
+            
+            // Show reset message
+            showResetMessage();
+        }
+
+        function showResetMessage() {
+            // Create a temporary reset message
+            const resetMessage = document.createElement('div');
+            resetMessage.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+                border: 2px solid #dc3545;
+                border-radius: 15px;
+                padding: 20px;
+                color: #721c24;
+                font-size: 1.3rem;
+                font-weight: bold;
+                text-align: center;
+                z-index: 1000;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                animation: fadeInOut 3s ease-in-out;
+            `;
+            resetMessage.textContent = '❌ Wrong number! Game reset. Try again!';
+            
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(resetMessage);
+            
+            // Remove message after animation
+            setTimeout(() => {
+                document.body.removeChild(resetMessage);
+                document.head.removeChild(style);
+            }, 3000);
+        }
+
+        function startTimer() {
+            const timer = document.getElementById('timer');
+            
+            const interval = setInterval(() => {
+                gameState.timeRemaining--;
+                
+                const minutes = Math.floor(gameState.timeRemaining / 60);
+                const seconds = gameState.timeRemaining % 60;
+                
+                timer.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (gameState.timeRemaining <= 60) {
+                    timer.classList.add('warning');
+                }
+                
+                if (gameState.timeRemaining <= 0) {
+                    clearInterval(interval);
+                    // Game over logic could be added here
+                }
+            }, 1000);
+        }
+
+        function showSuccess() {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.add('show');
+            
+            setTimeout(() => {
+                startFinalRiddle();
+            }, 2000);
+        }
+
+        function startFinalRiddle() {
+            gameState.gamePhase = 'final-riddle';
+            const finalRiddle = document.getElementById('finalRiddle');
+            finalRiddle.classList.add('show');
+            
+            // Setup riddle event listeners
+            setupRiddleListeners();
+        }
+
+        function setupRiddleListeners() {
+            // Easy riddle
+            document.getElementById('easyBtn').addEventListener('click', () => checkRiddleAnswer('easy'));
+            document.getElementById('easyInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkRiddleAnswer('easy');
+            });
+
+            // Medium riddle
+            document.getElementById('mediumBtn').addEventListener('click', () => checkRiddleAnswer('medium'));
+            document.getElementById('mediumInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkRiddleAnswer('medium');
+            });
+
+            // Hard riddle
+            document.getElementById('hardBtn').addEventListener('click', () => checkRiddleAnswer('hard'));
+            document.getElementById('hardInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkRiddleAnswer('hard');
+            });
+        }
+
+        function checkRiddleAnswer(level) {
+            const input = document.getElementById(`${level}Input`);
+            const feedback = document.getElementById(`${level}Feedback`);
+            const riddleDiv = document.getElementById(`${level}Riddle`);
+            const btn = document.getElementById(`${level}Btn`);
+            
+            const answer = input.value.toLowerCase().trim();
+            const correctAnswers = capitalAnswers[level];
+            
+            if (correctAnswers.includes(answer)) {
+                // Correct answer
+                feedback.textContent = '✅ Correct!';
+                feedback.className = 'riddle-feedback correct show';
+                riddleDiv.classList.add('completed');
+                btn.disabled = true;
+                input.disabled = true;
+                
+                gameState.riddleProgress[level] = true;
+                
+                // Check if all riddles are completed
+                if (gameState.riddleProgress.easy && gameState.riddleProgress.medium && gameState.riddleProgress.hard) {
+                    setTimeout(() => {
+                        showFinalHint();
+                    }, 1000);
+                }
+            } else {
+                // Incorrect answer
+                feedback.textContent = '❌ Try again!';
+                feedback.className = 'riddle-feedback incorrect show';
+                input.value = '';
+                
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        function showFinalHint() {
+            const finalRiddle = document.getElementById('finalRiddle');
+            finalRiddle.style.display = 'none';
+            
+            const hint = document.getElementById('hint');
+            hint.classList.add('show');
+        }
+
+        // Initialize the game when page loads
+        initGame();
+    </script>
+</body>
+</html>
