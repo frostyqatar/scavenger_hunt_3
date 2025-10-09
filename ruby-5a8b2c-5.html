@@ -746,6 +746,13 @@
             gameState.leavesShaken = 0;
             gameState.gamePhase = 'shaking';
             
+            // Reset riddle progress
+            gameState.riddleProgress = {
+                easy: false,
+                medium: false,
+                hard: false
+            };
+            
             // Reset progress bar
             const progressFill = document.getElementById('progressFill');
             progressFill.style.width = '0%';
@@ -771,6 +778,9 @@
             const hint = document.getElementById('hint');
             hint.classList.remove('show');
             
+            // Reset riddle inputs and feedback
+            resetRiddleElements();
+            
             // Clear input
             const codeInput = document.getElementById('codeInput');
             codeInput.value = '';
@@ -780,6 +790,34 @@
             
             // Show reset message
             showResetMessage();
+        }
+
+        function resetRiddleElements() {
+            // Reset all riddle inputs, buttons, and feedback
+            const levels = ['easy', 'medium', 'hard'];
+            
+            levels.forEach(level => {
+                const input = document.getElementById(`${level}Input`);
+                const feedback = document.getElementById(`${level}Feedback`);
+                const riddleDiv = document.getElementById(`${level}Riddle`);
+                const btn = document.getElementById(`${level}Btn`);
+                
+                if (input) {
+                    input.value = '';
+                    input.disabled = false;
+                }
+                if (feedback) {
+                    feedback.textContent = '';
+                    feedback.className = 'riddle-feedback';
+                    feedback.classList.remove('show', 'correct', 'incorrect');
+                }
+                if (riddleDiv) {
+                    riddleDiv.classList.remove('completed');
+                }
+                if (btn) {
+                    btn.disabled = false;
+                }
+            });
         }
 
         function showResetMessage() {
@@ -866,22 +904,27 @@
         }
 
         function setupRiddleListeners() {
-            // Easy riddle
-            document.getElementById('easyBtn').addEventListener('click', () => checkRiddleAnswer('easy'));
-            document.getElementById('easyInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') checkRiddleAnswer('easy');
-            });
-
-            // Medium riddle
-            document.getElementById('mediumBtn').addEventListener('click', () => checkRiddleAnswer('medium'));
-            document.getElementById('mediumInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') checkRiddleAnswer('medium');
-            });
-
-            // Hard riddle
-            document.getElementById('hardBtn').addEventListener('click', () => checkRiddleAnswer('hard'));
-            document.getElementById('hardInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') checkRiddleAnswer('hard');
+            // Remove existing listeners first to prevent duplicates
+            const levels = ['easy', 'medium', 'hard'];
+            
+            levels.forEach(level => {
+                const btn = document.getElementById(`${level}Btn`);
+                const input = document.getElementById(`${level}Input`);
+                
+                // Clone and replace elements to remove all event listeners
+                if (btn) {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', () => checkRiddleAnswer(level));
+                }
+                
+                if (input) {
+                    const newInput = input.cloneNode(true);
+                    input.parentNode.replaceChild(newInput, input);
+                    newInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') checkRiddleAnswer(level);
+                    });
+                }
             });
         }
 
