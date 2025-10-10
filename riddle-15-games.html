@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15 Riddles Challenge - Scavenger Hunt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+
+        .game-card.opened {
+            cursor: default;
+        }
+
+        .game-card.opened:hover {
+            transform: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .game-card.completed {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+        }
+
+        .riddle-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .riddle-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+            padding: 0 20px;
+        }
+
+        .riddle-content.expanded {
+            max-height: 1000px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .expand-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            color: #3498db;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .countdown-timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .countdown-timer.ready {
+            color: #28a745;
+        }
+
+        .puzzle-locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-number {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .game-number.completed {
+            background: linear-gradient(145deg, #28a745, #20c997);
+        }
+
+        .game-instructions {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .game-area {
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .game-area.completed {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .word-reveal {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .word-reveal.show {
+            opacity: 1;
+        }
+
+        /* Game-specific styles */
+        .drag-drop-area {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .draggable-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: grab;
+            transition: transform 0.2s ease;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .drop-zone {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed #bdc3c7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .drop-zone.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.2);
+        }
+
+        .letter-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .letter-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #3498db;
+            background: white;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .letter-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .letter-btn.correct {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .letter-btn.wrong {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            width: 200px;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: none;
+        }
+
+        .scratch-area {
+            width: 200px;
+            height: 100px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            border-radius: 10px;
+            position: relative;
+            cursor: crosshair;
+            overflow: hidden;
+        }
+
+        .scratch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            border-radius: 10px;
+            z-index: 2;
+        }
+
+        .hidden-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            z-index: 1;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quiz-option:hover {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .quiz-option.selected {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .quiz-option.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.2);
+        }
+
+        .clock-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #2c3e50;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .clock-hand {
+            position: absolute;
+            background: #2c3e50;
+            transform-origin: bottom center;
+            left: 50%;
+            bottom: 50%;
+        }
+
+        .hour-hand {
+            width: 4px;
+            height: 40px;
+            margin-left: -2px;
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 50px;
+            margin-left: -1.5px;
+        }
+
+        .clock-center {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #2c3e50;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .stacking-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            height: 200px;
+            justify-content: flex-end;
+        }
+
+        .block {
+            width: 60px;
+            height: 20px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .block:hover {
+            transform: scale(1.05);
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .target-circle {
+            width: 100px;
+            height: 100px;
+            border: 3px solid #e74c3c;
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .target-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+        }
+
+        .droppable-dot {
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .droppable-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .sun-container {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #87CEEB, #98FB98);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .sun {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .sun:active {
+            cursor: grabbing;
+        }
+
+        .sun.correct {
+            left: 80px;
+            bottom: 30px;
+        }
+
+        .carry-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .box-item {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #8e44ad, #9b59b6);
+            border-radius: 8px;
+            cursor: grab;
+            transition: transform 0.2s ease;
+        }
+
+        .box-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .destination-zone {
+            width: 80px;
+            height: 60px;
+            border: 3px dashed #8e44ad;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(142, 68, 173, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .destination-zone.drag-over {
+            border-color: #8e44ad;
+            background: rgba(142, 68, 173, 0.2);
+        }
+
+        .destination-zone.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.2);
+        }
+
+        .text-paragraph {
+            text-align: center;
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .hidden-word {
+            background: #3498db;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hidden-word:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .hidden-word.found {
+            background: #28a745;
+            animation: wordFound 0.5s ease;
+        }
+
+        @keyframes wordFound {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            border-color: #2c3e50;
+        }
+
+        .color-option.correct {
+            border-color: #28a745;
+            transform: scale(1.2);
+        }
+
+        .key-lock-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .key {
+            width: 30px;
+            height: 60px;
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            border-radius: 15px 15px 5px 5px;
+            cursor: grab;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .key:before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 15px;
+            border: 2px solid #2c3e50;
+            border-radius: 50%;
+        }
+
+        .key:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .lock {
+            width: 50px;
+            height: 60px;
+            background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+            border-radius: 10px;
+            position: relative;
+            border: 3px solid #2c3e50;
+        }
+
+        .lock:before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid #2c3e50;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .lock.unlocked {
+            background: linear-gradient(145deg, #28a745, #20c997);
+            animation: lockOpen 0.5s ease;
+        }
+
+        @keyframes lockOpen {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .magic-input {
+            width: 200px;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .magic-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .magic-input.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f39c12;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1001;
+            display: none;
+        }
+
+        .final-message.show {
+            display: block;
+            animation: modalSlideIn 0.5s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .final-sentence {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            border: 2px solid #2196f3;
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .game-card {
+                padding: 15px;
+            }
+            
+            .drag-drop-area,
+            .carry-container,
+            .key-lock-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 15 Riddles Challenge</h1>
+        <p>Solve all mini-games to reveal the secret sentence!</p>
+    </div>
+
+    <div class="progress-container">
+        <h3>Progress: <span id="completedCount">0</span> / 15 Games Completed</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="games-grid">
+        <!-- Game 1: Drag & Drop Match -->
+        <div class="game-card" id="game1" onclick="openRiddle(1)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">1</div>
+                    Drag & Drop Match
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer1">Click to start countdown</div>
+                <div class="game-instructions">Drag the "two people" icon to the handshake outline</div>
+                <div class="game-area puzzle-locked" id="puzzle1">
+                    <div class="drag-drop-area">
+                        <div class="draggable-item" draggable="true" data-word="meet">👥</div>
+                        <div class="drop-zone" data-target="meet">
+                            <span style="font-size: 2rem;">🤝</span>
+                        </div>
+                    </div>
+                    <div class="word-reveal">Meet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 2: Click Sequence -->
+        <div class="game-card" id="game2" onclick="openRiddle(2)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">2</div>
+                    Click Sequence
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer2">Click to start countdown</div>
+                <div class="game-instructions">Click the letters M → E → E → T in order</div>
+                <div class="game-area puzzle-locked" id="puzzle2">
+                    <div class="letter-buttons">
+                        <button class="letter-btn" data-letter="M">M</button>
+                        <button class="letter-btn" data-letter="E">E</button>
+                        <button class="letter-btn" data-letter="E">E</button>
+                        <button class="letter-btn" data-letter="T">T</button>
+                    </div>
+                    <div class="word-reveal">me</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 3: Slider Puzzle -->
+        <div class="game-card" id="game3" onclick="openRiddle(3)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">3</div>
+                    Slider Puzzle
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer3">Click to start countdown</div>
+                <div class="game-instructions">Move the slider to exactly 3</div>
+                <div class="game-area puzzle-locked" id="puzzle3">
+                    <div class="slider-container">
+                        <input type="range" class="slider" min="0" max="10" value="0" id="slider3">
+                        <div id="sliderValue">0</div>
+                    </div>
+                    <div class="word-reveal">at</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 4: Scratch Reveal -->
+        <div class="game-card" id="game4" onclick="openRiddle(4)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">4</div>
+                    Scratch Reveal
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer4">Click to start countdown</div>
+                <div class="game-instructions">Scratch away the overlay to reveal the word</div>
+                <div class="game-area puzzle-locked" id="puzzle4">
+                    <div class="scratch-area">
+                        <div class="hidden-text">the</div>
+                        <div class="scratch-overlay" id="scratchOverlay"></div>
+                    </div>
+                    <div class="word-reveal">the</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 5: True/False Quiz -->
+        <div class="game-card" id="game5" onclick="openRiddle(5)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">5</div>
+                    True/False Quiz
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer5">Click to start countdown</div>
+                <div class="game-instructions">Select all TRUE statements</div>
+                <div class="game-area puzzle-locked" id="puzzle5">
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">Ancient civilizations used stone tools</div>
+                        <div class="quiz-option" data-correct="true">Vintage cars are from the past</div>
+                        <div class="quiz-option" data-correct="true">Experience improves with time</div>
+                    </div>
+                    <div class="word-reveal">old</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 6: Clock Set Game -->
+        <div class="game-card" id="game6" onclick="openRiddle(6)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">6</div>
+                    Clock Set Game
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer6">Click to start countdown</div>
+                <div class="game-instructions">Set the clock to 12:00</div>
+                <div class="game-area puzzle-locked" id="puzzle6">
+                    <div class="clock-container">
+                        <div class="clock-hand hour-hand" id="hourHand"></div>
+                        <div class="clock-hand minute-hand" id="minuteHand"></div>
+                        <div class="clock-center"></div>
+                    </div>
+                    <div class="word-reveal">clock</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 7: Stacking Game -->
+        <div class="game-card" id="game7" onclick="openRiddle(7)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">7</div>
+                    Stacking Game
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer7">Click to start countdown</div>
+                <div class="game-instructions">Click blocks to build a tower</div>
+                <div class="game-area puzzle-locked" id="puzzle7">
+                    <div class="stacking-area" id="stackingArea">
+                        <div class="block" style="background: linear-gradient(145deg, #e74c3c, #c0392b);"></div>
+                        <div class="block" style="background: linear-gradient(145deg, #f39c12, #e67e22);"></div>
+                        <div class="block" style="background: linear-gradient(145deg, #f1c40f, #f39c12);"></div>
+                        <div class="block" style="background: linear-gradient(145deg, #2ecc71, #27ae60);"></div>
+                        <div class="block" style="background: linear-gradient(145deg, #3498db, #2980b9);"></div>
+                    </div>
+                    <div class="word-reveal">tower</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 8: Timer Wait Game -->
+        <div class="game-card" id="game8" onclick="openRiddle(8)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">8</div>
+                    Timer Wait Game
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer8">Click to start countdown</div>
+                <div class="game-instructions">Wait for the timer to reach 10 seconds</div>
+                <div class="game-area puzzle-locked" id="puzzle8">
+                    <div class="timer-display" id="timerDisplay">0</div>
+                    <div class="word-reveal">tomorrow</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 9: Target Drop -->
+        <div class="game-card" id="game9" onclick="openRiddle(9)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">9</div>
+                    Target Drop
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer9">Click to start countdown</div>
+                <div class="game-instructions">Drop the dot onto the center target</div>
+                <div class="game-area puzzle-locked" id="puzzle9">
+                    <div class="target-circle">
+                        <div class="target-center"></div>
+                    </div>
+                    <div class="droppable-dot" id="droppableDot" draggable="true">●</div>
+                    <div class="word-reveal">at</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 10: Sun Animation -->
+        <div class="game-card" id="game10" onclick="openRiddle(10)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">10</div>
+                    Sun Animation
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer10">Click to start countdown</div>
+                <div class="game-instructions">Move the sun to the middle of the sky</div>
+                <div class="game-area puzzle-locked" id="puzzle10">
+                    <div class="sun-container">
+                        <div class="sun" id="sun" draggable="true">☀️</div>
+                    </div>
+                    <div class="word-reveal">noon</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 11: Carry Object -->
+        <div class="game-card" id="game11" onclick="openRiddle(11)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">11</div>
+                    Carry Object
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer11">Click to start countdown</div>
+                <div class="game-instructions">Drag the box to the destination zone</div>
+                <div class="game-area puzzle-locked" id="puzzle11">
+                    <div class="carry-container">
+                        <div class="box-item" draggable="true" id="boxItem">📦</div>
+                        <div class="destination-zone" data-target="box">Drop here</div>
+                    </div>
+                    <div class="word-reveal">bring</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 12: Spot the Word -->
+        <div class="game-card" id="game12" onclick="openRiddle(12)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">12</div>
+                    Spot the Word
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer12">Click to start countdown</div>
+                <div class="game-instructions">Click the word "the" in the paragraph</div>
+                <div class="game-area puzzle-locked" id="puzzle12">
+                    <div class="text-paragraph">
+                        This is <span class="hidden-word" data-word="the">the</span> most important word in this sentence that you need to find and click on to continue.
+                    </div>
+                    <div class="word-reveal">the</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 13: Color Picker -->
+        <div class="game-card" id="game13" onclick="openRiddle(13)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">13</div>
+                    Color Picker
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer13">Click to start countdown</div>
+                <div class="game-instructions">Pick the correct color (red)</div>
+                <div class="game-area puzzle-locked" id="puzzle13">
+                    <div class="color-palette">
+                        <div class="color-option" style="background: #e74c3c;" data-color="red"></div>
+                        <div class="color-option" style="background: #3498db;" data-color="blue"></div>
+                        <div class="color-option" style="background: #2ecc71;" data-color="green"></div>
+                        <div class="color-option" style="background: #f39c12;" data-color="orange"></div>
+                        <div class="color-option" style="background: #9b59b6;" data-color="purple"></div>
+                    </div>
+                    <div class="word-reveal">red</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 14: Key Unlock -->
+        <div class="game-card" id="game14" onclick="openRiddle(14)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">14</div>
+                    Key Unlock
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer14">Click to start countdown</div>
+                <div class="game-instructions">Drag the key into the lock</div>
+                <div class="game-area puzzle-locked" id="puzzle14">
+                    <div class="key-lock-container">
+                        <div class="key" draggable="true" id="key"></div>
+                        <div class="lock" id="lock"></div>
+                    </div>
+                    <div class="word-reveal">key</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 15: Magic Word Input -->
+        <div class="game-card" id="game15" onclick="openRiddle(15)">
+            <div class="riddle-header">
+                <div class="game-title">
+                    <div class="game-number">15</div>
+                    Magic Word Input
+                </div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="riddle-content">
+                <div class="countdown-timer" id="timer15">Click to start countdown</div>
+                <div class="game-instructions">Type the magic word "please"</div>
+                <div class="game-area puzzle-locked" id="puzzle15">
+                    <input type="text" class="magic-input" id="magicInput" placeholder="Type any word...">
+                    <div class="word-reveal">please</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Message Modal -->
+    <div class="final-message" id="finalMessage">
+        <h2>🎉 Congratulations!</h2>
+        <p>You've completed all 15 riddles!</p>
+        <div class="final-sentence" id="finalSentence">
+            Meet me at the old clock tower tomorrow at noon bring the red key please
+        </div>
+        <p>Share this sentence with your team!</p>
+    </div>
+
+    <script>
+        let completedGames = 0;
+        const totalGames = 15;
+        const words = ['Meet', 'me', 'at', 'the', 'old', 'clock', 'tower', 'tomorrow', 'at', 'noon', 'bring', 'the', 'red', 'key', 'please'];
+        const openedRiddles = new Set();
+        const completedRiddles = new Set();
+
+        function updateProgress() {
+            document.getElementById('completedCount').textContent = completedGames;
+            document.getElementById('progressFill').style.width = (completedGames / totalGames) * 100 + '%';
+            
+            if (completedGames === totalGames) {
+                setTimeout(() => {
+                    document.getElementById('finalMessage').classList.add('show');
+                }, 1000);
+            }
+        }
+
+        function openRiddle(gameNumber) {
+            if (openedRiddles.has(gameNumber)) return;
+            
+            const gameCard = document.getElementById(`game${gameNumber}`);
+            const expandIcon = gameCard.querySelector('.expand-icon');
+            const riddleContent = gameCard.querySelector('.riddle-content');
+            
+            // Toggle expansion
+            if (riddleContent.classList.contains('expanded')) {
+                riddleContent.classList.remove('expanded');
+                expandIcon.classList.remove('rotated');
+                gameCard.classList.remove('opened');
+            } else {
+                riddleContent.classList.add('expanded');
+                expandIcon.classList.add('rotated');
+                gameCard.classList.add('opened');
+                openedRiddles.add(gameNumber);
+                
+                // Start countdown timer
+                startCountdown(gameNumber);
+            }
+        }
+
+        function startCountdown(gameNumber) {
+            const timer = document.getElementById(`timer${gameNumber}`);
+            const puzzle = document.getElementById(`puzzle${gameNumber}`);
+            
+            // Generate random countdown between 4-9 seconds
+            const countdownTime = Math.floor(Math.random() * 6) + 4; // 4-9 seconds
+            let timeLeft = countdownTime;
+            
+            timer.textContent = `Starting in ${timeLeft}...`;
+            timer.style.color = '#e74c3c';
+            
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    timer.textContent = `Starting in ${timeLeft}...`;
+                } else {
+                    timer.textContent = 'Ready!';
+                    timer.style.color = '#28a745';
+                    timer.classList.add('ready');
+                    puzzle.classList.remove('puzzle-locked');
+                    clearInterval(countdownInterval);
+                    
+                    // Initialize the specific game
+                    initializeGame(gameNumber);
+                }
+            }, 1000);
+        }
+
+        function completeGame(gameNumber) {
+            if (completedRiddles.has(gameNumber)) return;
+            
+            const gameCard = document.getElementById(`game${gameNumber}`);
+            const gameNumberEl = gameCard.querySelector('.game-number');
+            const gameArea = gameCard.querySelector('.game-area');
+            const wordReveal = gameCard.querySelector('.word-reveal');
+            
+            gameCard.classList.add('completed');
+            gameNumberEl.classList.add('completed');
+            gameArea.classList.add('completed');
+            wordReveal.classList.add('show');
+            
+            completedRiddles.add(gameNumber);
+            completedGames++;
+            updateProgress();
+        }
+
+        function initializeGame(gameNumber) {
+            // Each game will be initialized when its countdown finishes
+            switch(gameNumber) {
+                case 1: initDragDrop(); break;
+                case 2: initClickSequence(); break;
+                case 3: initSliderPuzzle(); break;
+                case 4: initScratchReveal(); break;
+                case 5: initTrueFalse(); break;
+                case 6: initClockGame(); break;
+                case 7: initStacking(); break;
+                case 8: initTimerWait(); break;
+                case 9: initTargetDrop(); break;
+                case 10: initSunAnimation(); break;
+                case 11: initCarryObject(); break;
+                case 12: initSpotWord(); break;
+                case 13: initColorPicker(); break;
+                case 14: initKeyUnlock(); break;
+                case 15: initMagicWord(); break;
+            }
+        }
+
+        // Game 1: Drag & Drop
+        function initDragDrop() {
+            const draggableItem = document.querySelector('#puzzle1 .draggable-item');
+            const dropZone = document.querySelector('#puzzle1 .drop-zone');
+
+            draggableItem.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.word);
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const data = e.dataTransfer.getData('text/plain');
+                if (data === 'meet') {
+                    dropZone.classList.add('correct');
+                    dropZone.innerHTML = '👥';
+                    setTimeout(() => completeGame(1), 500);
+                }
+                dropZone.classList.remove('drag-over');
+            });
+        }
+
+        // Game 2: Click Sequence
+        function initClickSequence() {
+            const letterButtons = document.querySelectorAll('#puzzle2 .letter-btn');
+            let currentLetterIndex = 0;
+            const correctSequence = ['M', 'E', 'E', 'T'];
+
+            letterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const letter = btn.dataset.letter;
+                    if (letter === correctSequence[currentLetterIndex]) {
+                        btn.classList.add('correct');
+                        currentLetterIndex++;
+                        if (currentLetterIndex === correctSequence.length) {
+                            setTimeout(() => completeGame(2), 500);
+                        }
+                    } else {
+                        btn.classList.add('wrong');
+                        setTimeout(() => {
+                            btn.classList.remove('wrong');
+                            currentLetterIndex = 0;
+                            letterButtons.forEach(b => b.classList.remove('correct'));
+                        }, 1000);
+                    }
+                });
+            });
+        }
+
+        // Game 3: Slider Puzzle
+        function initSliderPuzzle() {
+            const slider = document.getElementById('slider3');
+            const sliderValue = document.getElementById('sliderValue');
+
+            slider.addEventListener('input', () => {
+                sliderValue.textContent = slider.value;
+                if (slider.value === '3') {
+                    setTimeout(() => completeGame(3), 500);
+                }
+            });
+        }
+
+        // Game 4: Scratch Reveal
+        function initScratchReveal() {
+            const scratchOverlay = document.getElementById('scratchOverlay');
+            let scratchCount = 0;
+            const maxScratches = 20;
+            const scratchRadius = 15; // Larger radius for each scratch
+
+            function scratchAt(x, y) {
+                const rect = scratchOverlay.getBoundingClientRect();
+                const relativeX = x - rect.left;
+                const relativeY = y - rect.top;
+                
+                // Create a larger hole for each scratch
+                const hole = document.createElement('div');
+                hole.style.position = 'absolute';
+                hole.style.left = (relativeX - scratchRadius) + 'px';
+                hole.style.top = (relativeY - scratchRadius) + 'px';
+                hole.style.width = (scratchRadius * 2) + 'px';
+                hole.style.height = (scratchRadius * 2) + 'px';
+                hole.style.background = 'transparent';
+                hole.style.borderRadius = '50%';
+                hole.style.pointerEvents = 'none';
+                hole.style.zIndex = '10';
+                hole.style.border = '2px solid rgba(255,255,255,0.3)'; // Subtle border to show scratch
+                
+                // Add it to the scratch area (parent of overlay)
+                scratchOverlay.parentElement.appendChild(hole);
+                
+                scratchCount++;
+                
+                // Update the overlay opacity to show progress
+                const remainingOpacity = Math.max(0, 1 - (scratchCount / maxScratches));
+                scratchOverlay.style.opacity = remainingOpacity;
+                
+                // Check if enough scratches have been made
+                if (scratchCount >= maxScratches) {
+                    scratchOverlay.style.opacity = '0';
+                    setTimeout(() => completeGame(4), 500);
+                }
+            }
+
+            // Single click to scratch (no dragging needed)
+            scratchOverlay.addEventListener('click', (e) => {
+                scratchAt(e.clientX, e.clientY);
+            });
+
+            // Add touch support for mobile devices
+            scratchOverlay.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const touch = e.changedTouches[0];
+                scratchAt(touch.clientX, touch.clientY);
+            });
+        }
+
+        // Game 5: True/False Quiz
+        function initTrueFalse() {
+            const quizOptions = document.querySelectorAll('#puzzle5 .quiz-option');
+            let selectedCount = 0;
+
+            quizOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (option.classList.contains('selected')) return;
+                    
+                    option.classList.add('selected');
+                    if (option.dataset.correct === 'true') {
+                        option.classList.add('correct');
+                        selectedCount++;
+                        if (selectedCount === 3) {
+                            setTimeout(() => completeGame(5), 500);
+                        }
+                    } else {
+                        setTimeout(() => {
+                            option.classList.remove('selected');
+                            selectedCount = 0;
+                            quizOptions.forEach(opt => {
+                                opt.classList.remove('selected', 'correct');
+                            });
+                        }, 1000);
+                    }
+                });
+            });
+        }
+
+        // Game 6: Clock Set Game
+        function initClockGame() {
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            let hourAngle = 0;
+            let minuteAngle = 0;
+
+            function updateClock() {
+                hourHand.style.transform = `rotate(${hourAngle}deg)`;
+                minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+                
+                if (hourAngle === 0 && minuteAngle === 0) {
+                    setTimeout(() => completeGame(6), 500);
+                }
+            }
+
+            hourHand.addEventListener('click', () => {
+                hourAngle = (hourAngle + 30) % 360;
+                updateClock();
+            });
+
+            minuteHand.addEventListener('click', () => {
+                minuteAngle = (minuteAngle + 30) % 360;
+                updateClock();
+            });
+        }
+
+        // Game 7: Stacking Game
+        function initStacking() {
+            const stackingArea = document.getElementById('stackingArea');
+            const blocks = stackingArea.querySelectorAll('.block');
+            let stackedBlocks = 0;
+
+            blocks.forEach(block => {
+                block.addEventListener('click', () => {
+                    block.style.marginBottom = '5px';
+                    stackedBlocks++;
+                    if (stackedBlocks === blocks.length) {
+                        setTimeout(() => completeGame(7), 500);
+                    }
+                });
+            });
+        }
+
+        // Game 8: Timer Wait Game
+        function initTimerWait() {
+            let timer = 0;
+            const timerDisplay = document.getElementById('timerDisplay');
+            
+            const timerInterval = setInterval(() => {
+                timer++;
+                timerDisplay.textContent = timer;
+                if (timer === 10) {
+                    clearInterval(timerInterval);
+                    setTimeout(() => completeGame(8), 500);
+                }
+            }, 1000);
+        }
+
+        // Game 9: Target Drop
+        function initTargetDrop() {
+            const droppableDot = document.getElementById('droppableDot');
+            const targetCircle = document.querySelector('#puzzle9 .target-circle');
+
+            droppableDot.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'dot');
+            });
+
+            targetCircle.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            targetCircle.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const rect = targetCircle.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const distance = Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2));
+                
+                if (distance < 30) {
+                    droppableDot.style.position = 'absolute';
+                    droppableDot.style.left = '50%';
+                    droppableDot.style.top = '50%';
+                    droppableDot.style.transform = 'translate(-50%, -50%)';
+                    targetCircle.appendChild(droppableDot);
+                    setTimeout(() => completeGame(9), 500);
+                }
+            });
+        }
+
+        // Game 10: Sun Animation
+        function initSunAnimation() {
+            const sun = document.getElementById('sun');
+            const sunContainer = document.querySelector('#puzzle10 .sun-container');
+
+            sun.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'sun');
+            });
+
+            sunContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            sunContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const rect = sunContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (x > 70 && x < 130 && y > 20 && y < 60) {
+                    sun.classList.add('correct');
+                    setTimeout(() => completeGame(10), 500);
+                }
+            });
+        }
+
+        // Game 11: Carry Object
+        function initCarryObject() {
+            const boxItem = document.getElementById('boxItem');
+            const destinationZone = document.querySelector('#puzzle11 .destination-zone');
+
+            boxItem.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'box');
+            });
+
+            destinationZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                destinationZone.classList.add('drag-over');
+            });
+
+            destinationZone.addEventListener('dragleave', () => {
+                destinationZone.classList.remove('drag-over');
+            });
+
+            destinationZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                destinationZone.classList.add('correct');
+                destinationZone.innerHTML = '📦';
+                setTimeout(() => completeGame(11), 500);
+            });
+        }
+
+        // Game 12: Spot the Word
+        function initSpotWord() {
+            const hiddenWord = document.querySelector('#puzzle12 .hidden-word');
+
+            hiddenWord.addEventListener('click', () => {
+                hiddenWord.classList.add('found');
+                setTimeout(() => completeGame(12), 500);
+            });
+        }
+
+        // Game 13: Color Picker
+        function initColorPicker() {
+            const colorOptions = document.querySelectorAll('#puzzle13 .color-option');
+
+            colorOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (option.dataset.color === 'red') {
+                        option.classList.add('correct');
+                        setTimeout(() => completeGame(13), 500);
+                    } else {
+                        option.style.animation = 'shake 0.5s ease';
+                        setTimeout(() => {
+                            option.style.animation = '';
+                        }, 500);
+                    }
+                });
+            });
+        }
+
+        // Game 14: Key Unlock
+        function initKeyUnlock() {
+            const key = document.getElementById('key');
+            const lock = document.getElementById('lock');
+
+            key.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'key');
+            });
+
+            lock.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            lock.addEventListener('drop', (e) => {
+                e.preventDefault();
+                lock.classList.add('unlocked');
+                setTimeout(() => completeGame(14), 500);
+            });
+        }
+
+        // Game 15: Magic Word Input
+        function initMagicWord() {
+            const magicInput = document.getElementById('magicInput');
+
+            magicInput.addEventListener('input', () => {
+                if (magicInput.value.toLowerCase() === 'please') {
+                    magicInput.classList.add('correct');
+                    createConfetti();
+                    setTimeout(() => completeGame(15), 1000);
+                }
+            });
+        }
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            document.body.appendChild(confetti);
+
+            for (let i = 0; i < 50; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.animationDelay = Math.random() * 3 + 's';
+                piece.style.background = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                confetti.appendChild(piece);
+            }
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 3000);
+        }
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
