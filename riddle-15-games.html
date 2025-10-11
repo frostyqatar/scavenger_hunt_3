@@ -308,6 +308,7 @@
             background: #ddd;
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
 
         .slider::-webkit-slider-thumb {
@@ -437,6 +438,24 @@
             align-items: center;
             gap: 5px;
             height: 200px;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .blocks-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tower-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-height: 100px;
             justify-content: flex-end;
         }
 
@@ -451,6 +470,10 @@
 
         .block:hover {
             transform: scale(1.05);
+        }
+
+        .block.stacked {
+            margin-bottom: 0;
         }
 
         .timer-display {
@@ -783,6 +806,28 @@
             border: 2px solid #2196f3;
         }
 
+        /* Mobile touch improvements */
+        .draggable-item,
+        .droppable-dot,
+        .sun,
+        .box-item,
+        .key {
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .letter-btn,
+        .quiz-option,
+        .block,
+        .hidden-word,
+        .color-option {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         @media (max-width: 768px) {
             .games-grid {
                 grid-template-columns: 1fr;
@@ -801,6 +846,39 @@
             .key-lock-container {
                 flex-direction: column;
                 gap: 15px;
+            }
+
+            /* Larger touch targets for mobile */
+            .letter-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.4rem;
+            }
+
+            .quiz-option {
+                padding: 15px 20px;
+                font-size: 1.1rem;
+            }
+
+            .block {
+                width: 70px;
+                height: 25px;
+            }
+
+            .color-option {
+                width: 50px;
+                height: 50px;
+            }
+
+            .draggable-item {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+
+            .drop-zone {
+                width: 90px;
+                height: 90px;
             }
         }
     </style>
@@ -968,14 +1046,19 @@
             </div>
             <div class="riddle-content">
                 <div class="countdown-timer" id="timer7">Click to start countdown</div>
-                <div class="game-instructions">Click blocks to build a tower</div>
+                <div class="game-instructions">Click blocks to build something</div>
                 <div class="game-area puzzle-locked" id="puzzle7">
                     <div class="stacking-area" id="stackingArea">
-                        <div class="block" style="background: linear-gradient(145deg, #e74c3c, #c0392b);"></div>
-                        <div class="block" style="background: linear-gradient(145deg, #f39c12, #e67e22);"></div>
-                        <div class="block" style="background: linear-gradient(145deg, #f1c40f, #f39c12);"></div>
-                        <div class="block" style="background: linear-gradient(145deg, #2ecc71, #27ae60);"></div>
-                        <div class="block" style="background: linear-gradient(145deg, #3498db, #2980b9);"></div>
+                        <div class="blocks-container" id="blocksContainer">
+                            <div class="block" style="background: linear-gradient(145deg, #e74c3c, #c0392b);" data-color="red"></div>
+                            <div class="block" style="background: linear-gradient(145deg, #f39c12, #e67e22);" data-color="orange"></div>
+                            <div class="block" style="background: linear-gradient(145deg, #f1c40f, #f39c12);" data-color="yellow"></div>
+                            <div class="block" style="background: linear-gradient(145deg, #2ecc71, #27ae60);" data-color="green"></div>
+                            <div class="block" style="background: linear-gradient(145deg, #3498db, #2980b9);" data-color="blue"></div>
+                        </div>
+                        <div class="tower-area" id="towerArea">
+                            <!-- Blocks will be moved here when clicked -->
+                        </div>
                     </div>
                     <div class="word-reveal">tower</div>
                 </div>
@@ -1098,7 +1181,7 @@
             </div>
             <div class="riddle-content">
                 <div class="countdown-timer" id="timer13">Click to start countdown</div>
-                <div class="game-instructions">Pick the correct color (red)</div>
+                <div class="game-instructions">Pick the correct color</div>
                 <div class="game-area puzzle-locked" id="puzzle13">
                     <div class="color-palette">
                         <div class="color-option" style="background: #e74c3c;" data-color="red"></div>
@@ -1145,7 +1228,7 @@
             </div>
             <div class="riddle-content">
                 <div class="countdown-timer" id="timer15">Click to start countdown</div>
-                <div class="game-instructions">Type the magic word "please"</div>
+                <div class="game-instructions">What's the magic word? "Allan give me $10000000, ------?"</div>
                 <div class="game-area puzzle-locked" id="puzzle15">
                     <input type="text" class="magic-input" id="magicInput" placeholder="Type any word...">
                     <div class="word-reveal">please</div>
@@ -1185,6 +1268,12 @@
         function openRiddle(gameNumber) {
             if (openedRiddles.has(gameNumber)) return;
             
+            // Check if any other riddle is already opened
+            if (openedRiddles.size > 0) {
+                alert('Another riddle is already in progress! Please complete it first or wait for another player to finish.');
+                return;
+            }
+            
             const gameCard = document.getElementById(`game${gameNumber}`);
             const expandIcon = gameCard.querySelector('.expand-icon');
             const riddleContent = gameCard.querySelector('.riddle-content');
@@ -1194,6 +1283,7 @@
                 riddleContent.classList.remove('expanded');
                 expandIcon.classList.remove('rotated');
                 gameCard.classList.remove('opened');
+                openedRiddles.delete(gameNumber);
             } else {
                 riddleContent.classList.add('expanded');
                 expandIcon.classList.add('rotated');
@@ -1276,7 +1366,10 @@
         function initDragDrop() {
             const draggableItem = document.querySelector('#puzzle1 .draggable-item');
             const dropZone = document.querySelector('#puzzle1 .drop-zone');
+            let isDragging = false;
+            let touchStartPos = null;
 
+            // Desktop drag and drop
             draggableItem.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.dataset.word);
             });
@@ -1300,6 +1393,54 @@
                 }
                 dropZone.classList.remove('drag-over');
             });
+
+            // Mobile touch support
+            draggableItem.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                touchStartPos = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+                draggableItem.style.transform = 'scale(1.1)';
+                draggableItem.style.zIndex = '1000';
+            });
+
+            draggableItem.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = draggableItem.getBoundingClientRect();
+                const dropRect = dropZone.getBoundingClientRect();
+                
+                // Check if touch is over drop zone
+                if (touch.clientX >= dropRect.left && touch.clientX <= dropRect.right &&
+                    touch.clientY >= dropRect.top && touch.clientY <= dropRect.bottom) {
+                    dropZone.classList.add('drag-over');
+                } else {
+                    dropZone.classList.remove('drag-over');
+                }
+            });
+
+            draggableItem.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                isDragging = false;
+                draggableItem.style.transform = '';
+                draggableItem.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const dropRect = dropZone.getBoundingClientRect();
+                
+                // Check if touch ended over drop zone
+                if (touch.clientX >= dropRect.left && touch.clientX <= dropRect.right &&
+                    touch.clientY >= dropRect.top && touch.clientY <= dropRect.bottom) {
+                    dropZone.classList.add('correct');
+                    dropZone.innerHTML = '👥';
+                    setTimeout(() => completeGame(1), 500);
+                }
+                dropZone.classList.remove('drag-over');
+            });
         }
 
         // Game 2: Click Sequence
@@ -1308,23 +1449,29 @@
             let currentLetterIndex = 0;
             const correctSequence = ['M', 'E', 'E', 'T'];
 
-            letterButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const letter = btn.dataset.letter;
-                    if (letter === correctSequence[currentLetterIndex]) {
-                        btn.classList.add('correct');
-                        currentLetterIndex++;
-                        if (currentLetterIndex === correctSequence.length) {
-                            setTimeout(() => completeGame(2), 500);
-                        }
-                    } else {
-                        btn.classList.add('wrong');
-                        setTimeout(() => {
-                            btn.classList.remove('wrong');
-                            currentLetterIndex = 0;
-                            letterButtons.forEach(b => b.classList.remove('correct'));
-                        }, 1000);
+            function handleLetterClick(btn) {
+                const letter = btn.dataset.letter;
+                if (letter === correctSequence[currentLetterIndex]) {
+                    btn.classList.add('correct');
+                    currentLetterIndex++;
+                    if (currentLetterIndex === correctSequence.length) {
+                        setTimeout(() => completeGame(2), 500);
                     }
+                } else {
+                    btn.classList.add('wrong');
+                    setTimeout(() => {
+                        btn.classList.remove('wrong');
+                        currentLetterIndex = 0;
+                        letterButtons.forEach(b => b.classList.remove('correct'));
+                    }, 1000);
+                }
+            }
+
+            letterButtons.forEach(btn => {
+                btn.addEventListener('click', () => handleLetterClick(btn));
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleLetterClick(btn);
                 });
             });
         }
@@ -1401,26 +1548,32 @@
             const quizOptions = document.querySelectorAll('#puzzle5 .quiz-option');
             let selectedCount = 0;
 
-            quizOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    if (option.classList.contains('selected')) return;
-                    
-                    option.classList.add('selected');
-                    if (option.dataset.correct === 'true') {
-                        option.classList.add('correct');
-                        selectedCount++;
-                        if (selectedCount === 3) {
-                            setTimeout(() => completeGame(5), 500);
-                        }
-                    } else {
-                        setTimeout(() => {
-                            option.classList.remove('selected');
-                            selectedCount = 0;
-                            quizOptions.forEach(opt => {
-                                opt.classList.remove('selected', 'correct');
-                            });
-                        }, 1000);
+            function handleOptionClick(option) {
+                if (option.classList.contains('selected')) return;
+                
+                option.classList.add('selected');
+                if (option.dataset.correct === 'true') {
+                    option.classList.add('correct');
+                    selectedCount++;
+                    if (selectedCount === 3) {
+                        setTimeout(() => completeGame(5), 500);
                     }
+                } else {
+                    setTimeout(() => {
+                        option.classList.remove('selected');
+                        selectedCount = 0;
+                        quizOptions.forEach(opt => {
+                            opt.classList.remove('selected', 'correct');
+                        });
+                    }, 1000);
+                }
+            }
+
+            quizOptions.forEach(option => {
+                option.addEventListener('click', () => handleOptionClick(option));
+                option.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleOptionClick(option);
                 });
             });
         }
@@ -1429,42 +1582,77 @@
         function initClockGame() {
             const hourHand = document.getElementById('hourHand');
             const minuteHand = document.getElementById('minuteHand');
-            let hourAngle = 0;
-            let minuteAngle = 0;
+            
+            // Start with random positions (not 12:00)
+            let hourAngle = Math.floor(Math.random() * 12) * 30; // Random hour (0-11) * 30 degrees
+            let minuteAngle = Math.floor(Math.random() * 12) * 30; // Random minute (0-11) * 30 degrees
+            
+            // Ensure it's not already at 12:00
+            while (hourAngle === 0 && minuteAngle === 0) {
+                hourAngle = Math.floor(Math.random() * 12) * 30;
+                minuteAngle = Math.floor(Math.random() * 12) * 30;
+            }
 
             function updateClock() {
                 hourHand.style.transform = `rotate(${hourAngle}deg)`;
                 minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
                 
+                // Check if clock is set to 12:00 (both hands at 0 degrees)
                 if (hourAngle === 0 && minuteAngle === 0) {
                     setTimeout(() => completeGame(6), 500);
                 }
             }
 
-            hourHand.addEventListener('click', () => {
+            // Set initial random positions
+            updateClock();
+
+            function handleHourClick() {
                 hourAngle = (hourAngle + 30) % 360;
                 updateClock();
-            });
+            }
 
-            minuteHand.addEventListener('click', () => {
+            function handleMinuteClick() {
                 minuteAngle = (minuteAngle + 30) % 360;
                 updateClock();
+            }
+
+            hourHand.addEventListener('click', handleHourClick);
+            hourHand.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleHourClick();
+            });
+
+            minuteHand.addEventListener('click', handleMinuteClick);
+            minuteHand.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleMinuteClick();
             });
         }
 
         // Game 7: Stacking Game
         function initStacking() {
-            const stackingArea = document.getElementById('stackingArea');
-            const blocks = stackingArea.querySelectorAll('.block');
+            const blocksContainer = document.getElementById('blocksContainer');
+            const towerArea = document.getElementById('towerArea');
+            const blocks = blocksContainer.querySelectorAll('.block');
             let stackedBlocks = 0;
 
+            function handleBlockClick(block) {
+                // Move block from container to tower area
+                block.style.marginBottom = '5px';
+                block.classList.add('stacked');
+                towerArea.appendChild(block);
+                stackedBlocks++;
+                
+                if (stackedBlocks === blocks.length) {
+                    setTimeout(() => completeGame(7), 500);
+                }
+            }
+
             blocks.forEach(block => {
-                block.addEventListener('click', () => {
-                    block.style.marginBottom = '5px';
-                    stackedBlocks++;
-                    if (stackedBlocks === blocks.length) {
-                        setTimeout(() => completeGame(7), 500);
-                    }
+                block.addEventListener('click', () => handleBlockClick(block));
+                block.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleBlockClick(block);
                 });
             });
         }
@@ -1488,7 +1676,9 @@
         function initTargetDrop() {
             const droppableDot = document.getElementById('droppableDot');
             const targetCircle = document.querySelector('#puzzle9 .target-circle');
+            let isDragging = false;
 
+            // Desktop drag and drop
             droppableDot.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', 'dot');
             });
@@ -1513,13 +1703,46 @@
                     setTimeout(() => completeGame(9), 500);
                 }
             });
+
+            // Mobile touch support
+            droppableDot.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                droppableDot.style.transform = 'scale(1.2)';
+                droppableDot.style.zIndex = '1000';
+            });
+
+            droppableDot.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                isDragging = false;
+                droppableDot.style.transform = '';
+                droppableDot.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const rect = targetCircle.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const distance = Math.sqrt(Math.pow(touch.clientX - centerX, 2) + Math.pow(touch.clientY - centerY, 2));
+                
+                if (distance < 30) {
+                    droppableDot.style.position = 'absolute';
+                    droppableDot.style.left = '50%';
+                    droppableDot.style.top = '50%';
+                    droppableDot.style.transform = 'translate(-50%, -50%)';
+                    targetCircle.appendChild(droppableDot);
+                    setTimeout(() => completeGame(9), 500);
+                }
+            });
         }
 
         // Game 10: Sun Animation
         function initSunAnimation() {
             const sun = document.getElementById('sun');
             const sunContainer = document.querySelector('#puzzle10 .sun-container');
+            let isDragging = false;
 
+            // Desktop drag and drop
             sun.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', 'sun');
             });
@@ -1539,13 +1762,41 @@
                     setTimeout(() => completeGame(10), 500);
                 }
             });
+
+            // Mobile touch support
+            sun.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                sun.style.transform = 'scale(1.1)';
+                sun.style.zIndex = '1000';
+            });
+
+            sun.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                isDragging = false;
+                sun.style.transform = '';
+                sun.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const rect = sunContainer.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                if (x > 70 && x < 130 && y > 20 && y < 60) {
+                    sun.classList.add('correct');
+                    setTimeout(() => completeGame(10), 500);
+                }
+            });
         }
 
         // Game 11: Carry Object
         function initCarryObject() {
             const boxItem = document.getElementById('boxItem');
             const destinationZone = document.querySelector('#puzzle11 .destination-zone');
+            let isDragging = false;
 
+            // Desktop drag and drop
             boxItem.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', 'box');
             });
@@ -1565,15 +1816,64 @@
                 destinationZone.innerHTML = '📦';
                 setTimeout(() => completeGame(11), 500);
             });
+
+            // Mobile touch support
+            boxItem.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                boxItem.style.transform = 'scale(1.1)';
+                boxItem.style.zIndex = '1000';
+            });
+
+            boxItem.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const dropRect = destinationZone.getBoundingClientRect();
+                
+                // Check if touch is over destination zone
+                if (touch.clientX >= dropRect.left && touch.clientX <= dropRect.right &&
+                    touch.clientY >= dropRect.top && touch.clientY <= dropRect.bottom) {
+                    destinationZone.classList.add('drag-over');
+                } else {
+                    destinationZone.classList.remove('drag-over');
+                }
+            });
+
+            boxItem.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                isDragging = false;
+                boxItem.style.transform = '';
+                boxItem.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const dropRect = destinationZone.getBoundingClientRect();
+                
+                // Check if touch ended over destination zone
+                if (touch.clientX >= dropRect.left && touch.clientX <= dropRect.right &&
+                    touch.clientY >= dropRect.top && touch.clientY <= dropRect.bottom) {
+                    destinationZone.classList.add('correct');
+                    destinationZone.innerHTML = '📦';
+                    setTimeout(() => completeGame(11), 500);
+                }
+                destinationZone.classList.remove('drag-over');
+            });
         }
 
         // Game 12: Spot the Word
         function initSpotWord() {
             const hiddenWord = document.querySelector('#puzzle12 .hidden-word');
 
-            hiddenWord.addEventListener('click', () => {
+            function handleWordClick() {
                 hiddenWord.classList.add('found');
                 setTimeout(() => completeGame(12), 500);
+            }
+
+            hiddenWord.addEventListener('click', handleWordClick);
+            hiddenWord.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleWordClick();
             });
         }
 
@@ -1581,17 +1881,23 @@
         function initColorPicker() {
             const colorOptions = document.querySelectorAll('#puzzle13 .color-option');
 
+            function handleColorClick(option) {
+                if (option.dataset.color === 'red') {
+                    option.classList.add('correct');
+                    setTimeout(() => completeGame(13), 500);
+                } else {
+                    option.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        option.style.animation = '';
+                    }, 500);
+                }
+            }
+
             colorOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    if (option.dataset.color === 'red') {
-                        option.classList.add('correct');
-                        setTimeout(() => completeGame(13), 500);
-                    } else {
-                        option.style.animation = 'shake 0.5s ease';
-                        setTimeout(() => {
-                            option.style.animation = '';
-                        }, 500);
-                    }
+                option.addEventListener('click', () => handleColorClick(option));
+                option.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleColorClick(option);
                 });
             });
         }
@@ -1600,7 +1906,9 @@
         function initKeyUnlock() {
             const key = document.getElementById('key');
             const lock = document.getElementById('lock');
+            let isDragging = false;
 
+            // Desktop drag and drop
             key.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', 'key');
             });
@@ -1613,6 +1921,32 @@
                 e.preventDefault();
                 lock.classList.add('unlocked');
                 setTimeout(() => completeGame(14), 500);
+            });
+
+            // Mobile touch support
+            key.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                key.style.transform = 'scale(1.1)';
+                key.style.zIndex = '1000';
+            });
+
+            key.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                isDragging = false;
+                key.style.transform = '';
+                key.style.zIndex = '';
+                
+                const touch = e.changedTouches[0];
+                const lockRect = lock.getBoundingClientRect();
+                
+                // Check if touch ended over lock
+                if (touch.clientX >= lockRect.left && touch.clientX <= lockRect.right &&
+                    touch.clientY >= lockRect.top && touch.clientY <= lockRect.bottom) {
+                    lock.classList.add('unlocked');
+                    setTimeout(() => completeGame(14), 500);
+                }
             });
         }
 
