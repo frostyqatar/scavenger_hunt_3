@@ -464,7 +464,7 @@
 <body>
     <div class="header">
         <h1>🌳 Let's Win!</h1>
-        <p>Riddle 5 of 7 - The Ancient Tree's Secret</p>
+        <p>The Ancient Tree's Secret</p>
     </div>
 
     <div class="puzzle-container">
@@ -904,6 +904,38 @@
             
             const hint = document.getElementById('hint');
             hint.classList.add('show');
+            
+            // Show the unlock code
+            setTimeout(() => {
+                showUnlockCode();
+            }, 2000);
+        }
+        
+        function showUnlockCode() {
+            const unlockCodeDiv = document.createElement('div');
+            unlockCodeDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(145deg, #ffffff, #f8f9fa);
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                text-align: center;
+                z-index: 10000;
+                border: 3px solid #28a745;
+            `;
+            
+            unlockCodeDiv.innerHTML = `
+                <div style="font-size: 2rem; margin-bottom: 20px;">🎉</div>
+                <h3 style="color: #28a745; margin-bottom: 20px;">Unlock Code Revealed!</h3>
+                <div style="font-size: 3rem; font-weight: bold; color: #2c3e50; margin: 20px 0; font-family: 'Courier New', monospace; letter-spacing: 3px;">565612</div>
+                <p style="margin-bottom: 20px;">Use this code to access the next riddle!</p>
+                
+            `;
+            
+            document.body.appendChild(unlockCodeDiv);
         }
 
         // Initialize the game when page loads

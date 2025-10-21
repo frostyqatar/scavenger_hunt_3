@@ -889,6 +889,57 @@
         <p>Solve all mini-games to reveal the secret sentence!</p>
     </div>
 
+    <!-- Code Entry Modal -->
+    <div id="codeEntryModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    ">
+        <div style="
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        ">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">🔐 Access Code Required</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Enter the code from the Ancient Tree's Secret to unlock this challenge:</p>
+            <input type="text" id="accessCodeInput" placeholder="Enter 6-digit code" maxlength="6" style="
+                width: 100%;
+                padding: 15px;
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                font-size: 1.5rem;
+                text-align: center;
+                font-family: 'Courier New', monospace;
+                letter-spacing: 2px;
+                margin-bottom: 20px;
+            ">
+            <div id="codeError" style="color: #e74c3c; margin-bottom: 20px; display: none;">❌ Invalid code. Try again!</div>
+            <button id="submitCodeBtn" style="
+                background: linear-gradient(145deg, #17a2b8, #138496);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 10px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                margin: 5px;
+            ">Unlock Challenge</button>
+            <br>
+          
+        </div>
+    </div>
+
     <div class="progress-container">
         <h3>Progress: <span id="completedCount">0</span> / 15 Games Completed</h3>
         <div class="progress-bar">
@@ -1253,6 +1304,70 @@
         const words = ['Meet', 'me', 'at', 'the', 'old', 'clock', 'tower', 'tomorrow', 'at', 'noon', 'bring', 'the', 'red', 'key', 'please'];
         const openedRiddles = new Set();
         const completedRiddles = new Set();
+        const correctCode = '565612';
+        let isUnlocked = false;
+
+        // Check if already unlocked (from localStorage)
+        if (localStorage.getItem('riddle15Unlocked') === 'true') {
+            isUnlocked = true;
+            document.getElementById('codeEntryModal').style.display = 'none';
+        }
+
+        // Code entry functionality
+        function checkAccessCode() {
+            const input = document.getElementById('accessCodeInput');
+            const errorDiv = document.getElementById('codeError');
+            const code = input.value.trim();
+            
+            if (code === correctCode) {
+                isUnlocked = true;
+                localStorage.setItem('riddle15Unlocked', 'true');
+                document.getElementById('codeEntryModal').style.display = 'none';
+                // Show success message briefly
+                const successDiv = document.createElement('div');
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(145deg, #d4edda, #c3e6cb);
+                    color: #155724;
+                    padding: 20px 40px;
+                    border-radius: 15px;
+                    border: 2px solid #28a745;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    z-index: 10001;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                `;
+                successDiv.textContent = '✅ Access Granted! Challenge unlocked!';
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 2000);
+            } else {
+                errorDiv.style.display = 'block';
+                input.value = '';
+                input.focus();
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Event listeners for code entry
+        document.getElementById('submitCodeBtn').addEventListener('click', checkAccessCode);
+        document.getElementById('accessCodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAccessCode();
+            }
+        });
+
+        // Only allow numbers in the code input
+        document.getElementById('accessCodeInput').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
 
         function updateProgress() {
             document.getElementById('completedCount').textContent = completedGames;
@@ -1266,6 +1381,11 @@
         }
 
         function openRiddle(gameNumber) {
+            if (!isUnlocked) {
+                alert('Please enter the access code first to unlock this challenge!');
+                return;
+            }
+            
             if (openedRiddles.has(gameNumber)) return;
             
             // Check if any other riddle is already opened
